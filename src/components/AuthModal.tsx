@@ -1,295 +1,97 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { X, Lock, Mail, User, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
-import { UserRole } from '../types';
+import { backend, errorMessage } from '../services/supabase';
 
 export const AuthModal: React.FC = () => {
-  const {
-    isAuthModalOpen,
-    setIsAuthModalOpen,
-    authModalMode,
-    setAuthModalMode,
-    login,
-    setIsOnboardingOpen,
-  } = useApp();
+  const { isAuthModalOpen, setIsAuthModalOpen, authModalMode, setAuthModalMode,
+    login, register, resetPassword, changePassword, isPasswordRecovery, isBackendConfigured } = useApp();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [forgot, setForgot] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const dialog = useRef<HTMLDivElement>(null);
 
-  const [email, setEmail] = useState('growwithaccolade@gmail.com');
-  const [password, setPassword] = useState('password123');
-  const [firstName, setFirstName] = useState('Isaac');
-  const [lastName, setLastName] = useState('Adeleke');
-  const [role, setRole] = useState<UserRole>('student');
-  const [resetSent, setResetSent] = useState(false);
-  const [viewState, setViewState] = useState<'form' | 'forgot'>('form');
+  useEffect(() => { setError(''); setSuccess(''); setPassword(''); setConfirmPassword(''); setForgot(false); }, [authModalMode, isAuthModalOpen]);
+  useEffect(() => {
+    if (!isAuthModalOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const element = dialog.current;
+    element?.querySelector<HTMLInputElement>('input')?.focus();
+    const keydown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !busy) setIsAuthModalOpen(false);
+      if (e.key === 'Tab') {
+        const items = element?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), a[href]');
+        if (!items?.length) return;
+        const first = items[0], last = items[items.length-1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => { document.removeEventListener('keydown', keydown); previous?.focus(); };
+  }, [isAuthModalOpen, busy, setIsAuthModalOpen]);
 
   if (!isAuthModalOpen) return null;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    login(email, role);
-    if (authModalMode === 'register') {
-      setIsOnboardingOpen(true);
-    }
+  const registering = authModalMode === 'register' && !isPasswordRecovery && !forgot;
+  const label = isPasswordRecovery ? 'Set a new password' : forgot ? 'Reset your password' : registering ? 'Create your CCL account' : 'Welcome back';
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault(); if (busy) return;
+    setBusy(true); setError(''); setSuccess('');
+    try {
+      if (isPasswordRecovery) {
+        if (password !== confirmPassword) throw new Error('Your passwords do not match.');
+        await changePassword(password);
+      } else if (forgot) {
+        await resetPassword(email);
+        setSuccess('If an account exists for that email, you will receive a password reset link.');
+      } else if (registering) {
+        if (password !== confirmPassword) throw new Error('Your passwords do not match.');
+        const signedIn = await register(email, password, firstName, lastName);
+        if (!signedIn) setSuccess('Check your email to confirm your account, then sign in to continue.');
+      } else { await login(email, password); }
+    } catch (error) { setError(errorMessage(error)); }
+    finally { setBusy(false); }
   };
-
-  const handleGoogleSignIn = () => {
-    login('growwithaccolade@gmail.com', role);
-    if (authModalMode === 'register') {
-      setIsOnboardingOpen(true);
-    }
-  };
-
-  const handleForgotPassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    setResetSent(true);
-    setTimeout(() => {
-      setResetSent(false);
-      setViewState('form');
-    }, 3000);
-  };
-
+  const inputStyle = 'w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:outline-none focus:border-black disabled:opacity-50';
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
-      onClick={() => setIsAuthModalOpen(false)}
-    >
-      <div
-        className="w-full max-w-md rounded-3xl border border-gray-200/90 bg-white p-7 sm:p-8 shadow-2xl relative text-zinc-900"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={() => setIsAuthModalOpen(false)}
-          className="absolute top-5 right-5 text-zinc-400 hover:text-black p-1.5 rounded-full hover:bg-zinc-100 transition-colors"
-          aria-label="Close modal"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        {/* Brand Monogram */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="font-serif-ccl text-3xl font-bold tracking-tight text-black leading-none">
-            CCL
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[9px] font-sans font-semibold tracking-[0.25em] text-zinc-800 uppercase leading-tight">
-              CHRISTIAN
-            </span>
-            <span className="text-[9px] font-sans font-semibold tracking-[0.25em] text-zinc-800 uppercase leading-tight">
-              CREATOR LAB
-            </span>
-          </div>
-        </div>
-
-        {viewState === 'forgot' ? (
-          /* Forgot Password View */
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <h2 className="font-serif-ccl text-2xl font-bold text-zinc-950">
-                Reset Password
-              </h2>
-              <p className="text-xs text-zinc-600">
-                Enter your account email to receive reset instructions.
-              </p>
-            </div>
-
-            {resetSent ? (
-              <div className="rounded-2xl bg-zinc-50 border border-gray-200 p-4 text-xs text-zinc-800 flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-zinc-900 shrink-0" />
-                <span>Password reset link sent to your email.</span>
-              </div>
-            ) : (
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-zinc-700">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs text-zinc-900 focus:outline-none focus:border-black"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full rounded-full bg-black hover:bg-zinc-800 py-3 text-xs font-semibold text-white transition-colors shadow-2xs"
-                >
-                  Send Reset Link
-                </button>
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => setViewState('form')}
-                    className="text-xs text-zinc-500 hover:text-black font-medium"
-                  >
-                    Back to Sign In
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        ) : (
-          /* Main Auth Form */
-          <div className="space-y-5">
-            {/* Mode Switcher Tabs */}
-            <div className="grid grid-cols-2 gap-1 rounded-full bg-[#f4f4f6] p-1 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setAuthModalMode('login')}
-                className={`rounded-full py-2 transition-all ${
-                  authModalMode === 'login'
-                    ? 'bg-white text-black shadow-xs font-bold'
-                    : 'text-zinc-600 hover:text-black'
-                }`}
-              >
-                Sign In
-              </button>
-              <button
-                type="button"
-                onClick={() => setAuthModalMode('register')}
-                className={`rounded-full py-2 transition-all ${
-                  authModalMode === 'register'
-                    ? 'bg-white text-black shadow-xs font-bold'
-                    : 'text-zinc-600 hover:text-black'
-                }`}
-              >
-                Create Account
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-3.5">
-              {authModalMode === 'register' && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-zinc-700">First Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Isaac"
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:border-black"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-zinc-700">Last Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Adeleke"
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:border-black"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-700">Email Address</label>
-                <div className="relative">
-                  <Mail className="h-4 w-4 text-zinc-400 absolute left-3 top-2.5" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="creator@ccl.academy"
-                    className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 py-2 text-xs text-zinc-900 focus:outline-none focus:border-black"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-700">Password</label>
-                  {authModalMode === 'login' && (
-                    <button
-                      type="button"
-                      onClick={() => setViewState('forgot')}
-                      className="text-[11px] text-zinc-500 hover:text-black"
-                    >
-                      Forgot password?
-                    </button>
-                  )}
-                </div>
-                <div className="relative">
-                  <Lock className="h-4 w-4 text-zinc-400 absolute left-3 top-2.5" />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 py-2 text-xs text-zinc-900 focus:outline-none focus:border-black"
-                  />
-                </div>
-              </div>
-
-              {/* Demo Role Selector */}
-              <div className="space-y-1 pt-1">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-zinc-600 font-medium">Demo Experience Role:</span>
-                  <span className="font-mono text-zinc-400 uppercase">{role}</span>
-                </div>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="w-full rounded-xl border border-gray-200 bg-[#f9fafb] px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-black"
-                >
-                  <option value="student">Student / Creator</option>
-                  <option value="mentor">Mentor</option>
-                  <option value="instructor">Course Instructor</option>
-                  <option value="organization_admin">Church Team Admin (CSMC Orisun Ibukun)</option>
-                  <option value="administrator">Platform Administrator</option>
-                </select>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full rounded-full bg-black hover:bg-zinc-800 py-3 text-xs font-semibold text-white transition-colors shadow-2xs flex items-center justify-center gap-2 mt-2"
-              >
-                <span>{authModalMode === 'login' ? 'Sign In to CCL' : 'Create Free Account'}</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </form>
-
-            {/* Divider */}
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-[10px] uppercase font-mono">
-                <span className="bg-white px-3 text-zinc-400">or continue with</span>
-              </div>
-            </div>
-
-            {/* Google Sign In Button */}
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-2.5 rounded-full border border-gray-300 bg-white hover:bg-gray-50 py-2.5 text-xs font-semibold text-zinc-800 transition-colors shadow-2xs"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-              <span>Continue with Google</span>
-            </button>
-          </div>
-        )}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={() => !busy && setIsAuthModalOpen(false)}>
+      <div ref={dialog} role="dialog" aria-modal="true" aria-labelledby="auth-title" className="w-full max-w-md max-h-[90vh] overflow-auto rounded-3xl bg-white p-7 sm:p-8 shadow-2xl relative text-zinc-900" onClick={e => e.stopPropagation()}>
+        <button aria-label="Close sign in" disabled={busy} onClick={() => setIsAuthModalOpen(false)} className="absolute top-5 right-5 p-1.5 text-zinc-500"><X className="h-5 w-5" /></button>
+        <div className="font-serif-ccl text-3xl font-bold mb-6">CCL</div>
+        <h2 id="auth-title" className="font-serif-ccl text-2xl font-bold mb-2">{label}</h2>
+        <p className="text-sm text-zinc-500 mb-5">Create with excellence. Build with purpose.</p>
+        {!isBackendConfigured && <p role="status" className="text-sm rounded-xl bg-zinc-50 p-3 mb-4">Registration will open soon. Please check back later.</p>}
+        {error && <p role="alert" className="rounded-xl bg-rose-50 text-rose-800 p-3 text-sm mb-4">{error}</p>}
+        {success && <p role="status" className="rounded-xl bg-emerald-50 text-emerald-900 p-3 text-sm mb-4 flex gap-2"><CheckCircle2 className="h-5 w-5 shrink-0" />{success}</p>}
+        <form onSubmit={submit} className="space-y-4">
+          <fieldset disabled={busy || !isBackendConfigured} className="space-y-4">
+            {registering && <div className="grid grid-cols-2 gap-3">
+              <div><label htmlFor="auth-first" className="text-xs font-semibold">First name</label><input id="auth-first" required autoComplete="given-name" maxLength={100} value={firstName} onChange={e => setFirstName(e.target.value)} className={inputStyle} /></div>
+              <div><label htmlFor="auth-last" className="text-xs font-semibold">Last name</label><input id="auth-last" required autoComplete="family-name" maxLength={100} value={lastName} onChange={e => setLastName(e.target.value)} className={inputStyle} /></div>
+            </div>}
+            {!isPasswordRecovery && <div><label htmlFor="auth-email" className="text-xs font-semibold">Email address</label><input id="auth-email" type="email" required maxLength={254} autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} className={inputStyle} /></div>}
+            {!forgot && <div><label htmlFor="auth-password" className="text-xs font-semibold">{isPasswordRecovery ? 'New password' : 'Password'}</label><input id="auth-password" type="password" required minLength={registering || isPasswordRecovery ? 8 : undefined} autoComplete={registering || isPasswordRecovery ? 'new-password' : 'current-password'} value={password} onChange={e => setPassword(e.target.value)} className={inputStyle} /></div>}
+            {(registering || isPasswordRecovery) && <div><label htmlFor="auth-confirm" className="text-xs font-semibold">Confirm password</label><input id="auth-confirm" type="password" required minLength={8} autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className={inputStyle} /></div>}
+            <button type="submit" className="w-full rounded-full bg-black py-3 text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50">{busy ? 'Please wait…' : isPasswordRecovery ? 'Save new password' : forgot ? 'Send reset link' : registering ? 'Create free account' : 'Sign in'}<ArrowRight className="h-4 w-4" /></button>
+          </fieldset>
+        </form>
+        {!isPasswordRecovery && <div className="mt-5 text-center space-y-3 text-xs">
+          {forgot ? <button onClick={() => { setForgot(false); setError(''); setSuccess(''); }}>Back to sign in</button> : <>
+            {!registering && <button onClick={() => { setForgot(true); setError(''); setSuccess(''); }}>Forgot your password?</button>}
+            <div><button onClick={() => setAuthModalMode(registering ? 'login' : 'register')}>{registering ? 'Already have an account? Sign in' : 'New to CCL? Create an account'}</button></div>
+          </>}
+        </div>}
+        {import.meta.env.VITE_GOOGLE_AUTH_ENABLED === 'true' && !forgot && !isPasswordRecovery && <button disabled={busy || !isBackendConfigured} className="w-full rounded-full border mt-5 py-3 text-sm" onClick={async () => {
+          setError(''); setBusy(true);
+          try { const { error } = await backend().auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); if (error) throw error; }
+          catch (error) { setError(errorMessage(error)); setBusy(false); }
+        }}>Continue with Google</button>}
       </div>
     </div>
   );

@@ -25,9 +25,9 @@ export const CourseDetailView: React.FC = () => {
 
   const course = courses.find((c) => c.id === selectedCourseId) || courses[0];
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!course.isEnrolled) {
-      enrollInCourse(course.id);
+      if (!await enrollInCourse(course.id)) return;
     }
     navigateWithParam('course_player', course.id);
   };
@@ -156,8 +156,8 @@ export const CourseDetailView: React.FC = () => {
                 {mod.lessons.map((lesson) => (
                   <div
                     key={lesson.id}
-                    onClick={() => {
-                      if (!course.isEnrolled) enrollInCourse(course.id);
+                    onClick={async () => {
+                      if (!course.isEnrolled && !await enrollInCourse(course.id)) return;
                       navigateWithParam('course_player', course.id);
                     }}
                     className="flex items-center justify-between p-3 rounded-xl hover:bg-[#f7f8fa] cursor-pointer transition-colors text-xs"

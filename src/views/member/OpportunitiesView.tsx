@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { OPPORTUNITIES } from '../../data/seedData';
+import { useApp } from '../../context/AppContext';
+import { safeUrl } from '../../services/supabase';
 import {
   Briefcase,
   Globe,
@@ -16,7 +17,7 @@ import { Opportunity } from '../../types';
 export const OpportunitiesView: React.FC = () => {
   const [filterType, setFilterType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [appliedId, setAppliedId] = useState<string | null>(null);
+  const { opportunities: OPPORTUNITIES, setDataError } = useApp();
 
   const filteredOpportunities = OPPORTUNITIES.filter((opp) => {
     if (filterType !== 'all' && opp.type !== filterType) return false;
@@ -32,8 +33,11 @@ export const OpportunitiesView: React.FC = () => {
   });
 
   const handleApply = (id: string) => {
-    setAppliedId(id);
-    setTimeout(() => setAppliedId(null), 3500);
+    try {
+      const url = safeUrl(OPPORTUNITIES.find(opp => opp.id === id)?.applicationUrl);
+      if (!url) throw new Error('The application link is not available yet.');
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (error) { setDataError((error as Error).message); }
   };
 
   return (
@@ -133,7 +137,7 @@ export const OpportunitiesView: React.FC = () => {
                 onClick={() => handleApply(opp.id)}
                 className="rounded-full bg-black hover:bg-zinc-800 text-white px-5 py-2 text-xs font-semibold transition-colors shadow-2xs"
               >
-                {appliedId === opp.id ? 'Application Sent ✓' : 'Apply Now'}
+                Apply Now
               </button>
             </div>
           </div>

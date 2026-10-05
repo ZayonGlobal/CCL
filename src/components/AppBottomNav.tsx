@@ -41,9 +41,7 @@ export const AppBottomNav: React.FC = () => {
 
   if (
     currentUser.role === 'administrator' ||
-    currentUser.role === 'super_admin' ||
-    currentUser.role === 'instructor' ||
-    currentUser.role === 'mentor'
+    currentUser.role === 'super_admin'
   ) {
     moreItems.push({ label: 'Admin Dashboard', view: 'admin', icon: Shield });
   }

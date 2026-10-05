@@ -5,11 +5,11 @@ import { Check, ShieldCheck, ArrowRight, Users, HelpCircle, BookOpen, Layers, Aw
 import { MembershipTier } from '../../types';
 
 export const PublicMembership: React.FC = () => {
-  const { setIsAuthModalOpen, setAuthModalMode, upgradeMembership, currentUser, setCurrentView } = useApp();
+  const { setIsAuthModalOpen, setAuthModalMode, upgradeMembership, currentUser, setCurrentView, isAuthenticated } = useApp();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
 
   const handleSelectPlan = (tier: MembershipTier) => {
-    upgradeMembership(tier);
+    if (isAuthenticated) { void upgradeMembership(tier); return; }
     setAuthModalMode('register');
     setIsAuthModalOpen(true);
   };

@@ -1,29 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Sparkles, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
 import { LearningLevel } from '../types';
 
 export const OnboardingModal: React.FC = () => {
-  const { isOnboardingOpen, completeOnboarding, currentUser } = useApp();
+  const { isOnboardingOpen, completeOnboarding, currentUser, dataError } = useApp();
 
   const [step, setStep] = useState(1);
 
   // 10 Onboarding fields
-  const [firstName, setFirstName] = useState(currentUser.firstName || 'Isaac');
-  const [lastName, setLastName] = useState(currentUser.lastName || 'Adeleke');
-  const [country, setCountry] = useState(currentUser.country || 'Nigeria');
+  const [firstName, setFirstName] = useState(currentUser.firstName || '');
+  const [lastName, setLastName] = useState(currentUser.lastName || '');
+  const [country, setCountry] = useState(currentUser.country || '');
   const [primaryInterest, setPrimaryInterest] = useState<string>('Church Media & Visual Design');
-  const [currentSkillLevel, setCurrentSkillLevel] = useState<LearningLevel>('Builder');
-  const [whyJoining, setWhyJoining] = useState<string>('Equip our church media team with AI workflows');
+  const [currentSkillLevel, setCurrentSkillLevel] = useState<LearningLevel>('Explorer');
+  const [whyJoining, setWhyJoining] = useState<string>('');
   const [preferredLearningPath, setPreferredLearningPath] = useState<string>('Ministry & Creative Systems');
-  const [isChurchMediaTeamMember, setIsChurchMediaTeamMember] = useState<boolean>(true);
-  const [organizationName, setOrganizationName] = useState<string>('CSMC Orisun Ibukun');
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([
-    'Prompt Architecture',
-    'AI Image Direction',
-    'Church Media Systems',
-    'Vibe Coding',
-  ]);
+  const [isChurchMediaTeamMember, setIsChurchMediaTeamMember] = useState<boolean>(false);
+  const [organizationName, setOrganizationName] = useState<string>('');
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (!isOnboardingOpen) return;
+    setStep(1); setFirstName(currentUser.firstName); setLastName(currentUser.lastName);
+    setCountry(currentUser.country); setOrganizationName(currentUser.organizationName || '');
+  }, [isOnboardingOpen, currentUser.id]);
 
   if (!isOnboardingOpen) return null;
 
@@ -33,10 +34,15 @@ export const OnboardingModal: React.FC = () => {
     );
   };
 
-  const handleFinish = () => {
-    completeOnboarding({
+  const handleFinish = async () => {
+    if (saving) return;
+    setSaving(true);
+    await completeOnboarding({
       firstName,
       lastName,
+      primaryInterests: [primaryInterest],
+      whyJoining,
+      preferredLearningPath,
       country,
       learningLevel: currentSkillLevel,
       organizationName,
@@ -44,6 +50,7 @@ export const OnboardingModal: React.FC = () => {
       headline: `${preferredLearningPath} | ${organizationName || 'CCL Creator'}`,
       skillsToLearn: selectedSkills,
     });
+    setSaving(false);
   };
 
   return (
@@ -76,6 +83,7 @@ export const OnboardingModal: React.FC = () => {
           </div>
         </div>
 
+        {dataError && <p role="alert" className="mb-4 text-sm text-rose-700">{dataError}</p>}
         {/* STEP 1: Basic Identity & Church Context */}
         {step === 1 && (
           <div className="space-y-4">
@@ -290,9 +298,10 @@ export const OnboardingModal: React.FC = () => {
               <button
                 type="button"
                 onClick={handleFinish}
+                disabled={saving || !firstName.trim() || !lastName.trim()}
                 className="flex items-center gap-2 rounded-full bg-black hover:bg-zinc-800 px-7 py-2.5 text-xs font-semibold text-white transition-colors shadow-2xs"
               >
-                <span>Enter Your Creator Lab</span>
+                <span>{saving ? 'Saving…' : 'Enter Your Creator Lab'}</span>
                 <CheckCircle2 className="h-3.5 w-3.5" />
               </button>
             </div>

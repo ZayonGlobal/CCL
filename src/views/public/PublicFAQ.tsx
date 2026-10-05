@@ -1,3 +1,5 @@
+import { saveInquiry } from '../../services/data';
+import { errorMessage } from '../../services/supabase';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
@@ -290,9 +292,14 @@ export const PublicContact: React.FC = () => {
   const [subject, setSubject] = useState('Church Media Partnership');
   const [message, setMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); if (saving) return;
+    setSaving(true); setFormError('');
+    try { await saveInquiry({ name, email, subject, message }); setSubmitted(true); }
+    catch (error) { setFormError(errorMessage(error)); }
+    finally { setSaving(false); }
   };
 
   return (
@@ -352,17 +359,19 @@ export const PublicContact: React.FC = () => {
             {submitted ? (
               <div className="p-8 text-center space-y-3">
                 <CheckCircle2 className="h-10 w-10 text-zinc-900 mx-auto" />
-                <h3 className="font-serif-ccl text-2xl font-bold text-zinc-950">Message Sent Successfully</h3>
+                <h3 className="font-serif-ccl text-2xl font-bold text-zinc-950">Message Saved Successfully</h3>
                 <p className="text-xs text-zinc-600 max-w-md mx-auto leading-relaxed">
-                  Thank you, {name}. A member of the Christian Creator Lab leadership team will reach out to you shortly at {email}.
+                  Thank you, {name}. Your inquiry is saved for the CCL team to review, with {email} as your contact address.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                {formError && <p role="alert" className="text-sm text-rose-700">{formError}</p>}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-zinc-700">Full Name</label>
+                    <label htmlFor="contact-name" className="text-xs font-semibold text-zinc-700">Full Name</label>
                     <input
+                      id="contact-name" maxLength={150}
                       type="text"
                       required
                       value={name}
@@ -373,8 +382,9 @@ export const PublicContact: React.FC = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-zinc-700">Email Address</label>
+                    <label htmlFor="contact-email" className="text-xs font-semibold text-zinc-700">Email Address</label>
                     <input
+                      id="contact-email" maxLength={254}
                       type="email"
                       required
                       value={email}
@@ -386,8 +396,9 @@ export const PublicContact: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-700">Inquiry Purpose</label>
+                  <label htmlFor="contact-subject" className="text-xs font-semibold text-zinc-700">Inquiry Purpose</label>
                   <select
+                    id="contact-subject"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs text-zinc-900 focus:outline-none focus:border-black"
@@ -400,8 +411,9 @@ export const PublicContact: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-700">Message</label>
+                  <label htmlFor="contact-message" className="text-xs font-semibold text-zinc-700">Message</label>
                   <textarea
+                    id="contact-message" maxLength={5000}
                     rows={5}
                     required
                     value={message}
@@ -412,7 +424,7 @@ export const PublicContact: React.FC = () => {
                 </div>
 
                 <button
-                  type="submit"
+                  type="submit" disabled={saving}
                   className="rounded-full bg-black px-8 py-3.5 text-xs sm:text-sm font-semibold text-white hover:bg-zinc-800 transition-colors shadow-sm inline-flex items-center gap-2"
                 >
                   <Send className="h-3.5 w-3.5" />

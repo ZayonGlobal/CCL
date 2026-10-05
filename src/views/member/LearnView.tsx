@@ -223,8 +223,8 @@ export const LearnView: React.FC = () => {
                     View Details
                   </button>
                   <button
-                    onClick={() => {
-                      enrollInCourse(course.id);
+                    onClick={async () => {
+                      if (!await enrollInCourse(course.id)) return;
                       navigateWithParam('course_player', course.id);
                     }}
                     className="flex-1 rounded-xl bg-zinc-900 hover:bg-black py-2 text-xs font-bold text-white transition-colors"

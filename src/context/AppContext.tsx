@@ -1,33 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import {
-  UserProfile,
-  UserRole,
-  MembershipTier,
-  Course,
-  Challenge,
-  ChallengeSubmission,
-  Project,
-  Post,
-  PromptItem,
-  ResourceItem,
-  AITool,
-  Opportunity,
-  Certificate,
-  PostCategory,
-} from '../types';
-import {
-  CURRENT_USER,
-  COURSES as INITIAL_COURSES,
-  CHALLENGES as INITIAL_CHALLENGES,
-  CHALLENGE_SUBMISSIONS as INITIAL_SUBMISSIONS,
-  USER_PROJECTS as INITIAL_PROJECTS,
-  POSTS as INITIAL_POSTS,
-  PROMPT_LIBRARY as INITIAL_PROMPTS,
-  RESOURCE_ITEMS as INITIAL_RESOURCES,
-  AI_TOOLS,
-  OPPORTUNITIES,
-  CERTIFICATES,
-} from '../data/seedData';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import type { UserProfile, Course, Challenge, ChallengeSubmission, Project, Post, PostCategory, PromptItem, ResourceItem, Certificate, LiveSession, Opportunity, MembershipTier } from '../types';
+import { supabase, backend, isBackendConfigured, errorMessage, safeUrl } from '../services/supabase';
+import { emptyProfile, profileFields, loadProfile, catalog, records, insertRecord, isAdmin } from '../services/data';
+import type { CatalogRow, CatalogKind, DataRecord } from '../services/data';
 
 export type AppView =
   // Public pages
@@ -65,452 +41,310 @@ export type AppView =
   | 'admin'
   | 'verify_certificate';
 
-export interface NotificationItem {
-  id: string;
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-  type: 'live' | 'challenge' | 'feedback' | 'system' | 'community';
-  targetView?: AppView;
-}
+export interface NotificationItem { id: string; title: string; message: string; time: string; read: boolean; type: string; targetView?: AppView }
 
-interface AppContextType {
-  // Navigation & views
-  currentView: AppView;
-  setCurrentView: (view: AppView) => void;
-  navigateWithParam: (view: AppView, paramId?: string) => void;
-
-  // Selected item pointers
-  selectedCourseId: string | null;
-  setSelectedCourseId: (id: string | null) => void;
-  selectedLessonId: string | null;
-  setSelectedLessonId: (id: string | null) => void;
-  selectedChallengeId: string | null;
-  setSelectedChallengeId: (id: string | null) => void;
-  selectedCertificateId: string;
-  setSelectedCertificateId: (id: string) => void;
-
-  // User & Auth state
-  currentUser: UserProfile;
-  isAuthenticated: boolean;
-  setIsAuthenticated: (val: boolean) => void;
-  login: (email: string, role?: UserRole) => void;
-  logout: () => void;
-  updateCurrentUser: (updates: Partial<UserProfile>) => void;
-  switchRole: (role: UserRole) => void;
-  upgradeMembership: (tier: MembershipTier) => void;
-
-  // Onboarding
-  isOnboardingOpen: boolean;
-  setIsOnboardingOpen: (val: boolean) => void;
-  completeOnboarding: (prefs: Partial<UserProfile>) => void;
-
-  // Theme & overlays
-  theme: 'dark' | 'light';
-  toggleTheme: () => void;
-  isSearchOpen: boolean;
-  setIsSearchOpen: (val: boolean) => void;
-  isAssistantOpen: boolean;
-  setIsAssistantOpen: (val: boolean) => void;
-  isAuthModalOpen: boolean;
-  setIsAuthModalOpen: (val: boolean) => void;
-  authModalMode: 'login' | 'register';
-  setAuthModalMode: (mode: 'login' | 'register') => void;
-
-  // Core collections & actions
-  courses: Course[];
-  enrollInCourse: (courseId: string) => void;
-  toggleLessonComplete: (courseId: string, lessonId: string) => void;
-
-  challenges: Challenge[];
-  submissions: ChallengeSubmission[];
-  addChallengeSubmission: (submission: Omit<ChallengeSubmission, 'id' | 'submittedAt' | 'reactions' | 'status'>) => void;
-
-  projects: Project[];
-  createProject: (project: Omit<Project, 'id' | 'createdAt'>) => void;
-  updateProjectReview: (projectId: string, status: Project['status'], feedback?: string) => void;
-
-  posts: Post[];
-  createPost: (spaceId: string, spaceName: string, category: PostCategory, title: string, content: string) => void;
-  toggleReaction: (postId: string, reaction: 'helpful' | 'pray' | 'inspired' | 'celebrate') => void;
-
-  prompts: PromptItem[];
-  toggleSavePrompt: (promptId: string) => void;
-
-  resources: ResourceItem[];
-  bookmarks: Set<string>;
-  toggleBookmark: (id: string) => void;
-
-  notifications: NotificationItem[];
-  markNotificationRead: (id: string) => void;
-  clearNotifications: () => void;
-}
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
-
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Navigation & mode - Default to the public website UI requested in screenshot
-  const [currentView, setCurrentView] = useState<AppView>('public_home');
-  const [selectedCourseId, setSelectedCourseId] = useState<string | null>('crs_ai_foundations');
-  const [selectedLessonId, setSelectedLessonId] = useState<string | null>('les_1_1');
-  const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>('ch_easter_campaign');
-  const [selectedCertificateId, setSelectedCertificateId] = useState<string>('CCL-CERT-2026-8941');
-
-  // User & Auth
-  const [currentUser, setCurrentUser] = useState<UserProfile>(CURRENT_USER);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true); // Pre-authenticated for rich developer test, toggleable anytime
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+function useAppState() {
+  const [currentView, navigate] = useState<AppView>('public_home');
+  const [currentUser, setCurrentUser] = useState<UserProfile>(emptyProfile);
+  const [authLoading, setAuthLoading] = useState(isBackendConfigured);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [isAuthenticated, setAuthenticated] = useState(false);
+  const [dataError, setDataError] = useState('');
+  const [catalogRows, setCatalog] = useState<CatalogRow[]>([]);
+  const [dataRecords, setRecords] = useState<DataRecord[]>([]);
+  const [enrollments, setEnrollments] = useState<any[]>([]);
+  const [progress, setProgress] = useState<any[]>([]);
+  const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
+  const [reactions, setReactions] = useState<any[]>([]);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
-
-  // Theme & overlays
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(null);
+  const [selectedCertificateId, setSelectedCertificateId] = useState('');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    try {
-      const saved = localStorage.getItem('ccl_theme');
-      if (saved === 'dark' || saved === 'light') return saved;
-    } catch {
-      // ignore
-    }
-    return 'light';
+    try { return localStorage.getItem('ccl_theme') === 'dark' ? 'dark' : 'light'; } catch { return 'light'; }
   });
-  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
-  const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(false);
+  const authGeneration = useRef(0);
+  const activeUser = useRef<string | null>(null);
 
-  // Data states
-  const [courses, setCourses] = useState<Course[]>(INITIAL_COURSES);
-  const [challenges, setChallenges] = useState<Challenge[]>(INITIAL_CHALLENGES);
-  const [submissions, setSubmissions] = useState<ChallengeSubmission[]>(INITIAL_SUBMISSIONS);
-  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
-  const [posts, setPosts] = useState<Post[]>(INITIAL_POSTS);
-  const [prompts, setPrompts] = useState<PromptItem[]>(INITIAL_PROMPTS);
-  const [resources, setResources] = useState<ResourceItem[]>(INITIAL_RESOURCES);
-  const [bookmarks, setBookmarks] = useState<Set<string>>(new Set(['prm_01', 'prm_02', 'res_item_01']));
+  const fetchCatalog = async () => {
+    const owner = activeUser.current;
+    if (supabase) { const result = await catalog(); if (activeUser.current === owner) setCatalog(result); }
+  };
+  const fetchMemberData = async (userId: string) => {
+    const results = await Promise.all([
+      records(),
+      backend().from('ccl_enrollments').select('*').eq('user_id', userId),
+      backend().from('ccl_lesson_progress').select('*').eq('user_id', userId),
+      backend().from('ccl_bookmarks').select('*').eq('user_id', userId),
+      backend().from('ccl_reactions').select('*'),
+      backend().from('ccl_certificates').select('payload').eq('user_id', userId),
+    ]);
+    if (activeUser.current !== userId) return;
+    for (const result of results.slice(1)) if ((result as any).error) throw (result as any).error;
+    setRecords(results[0] as DataRecord[]);
+    setEnrollments((results[1] as any).data);
+    setProgress((results[2] as any).data);
+    setBookmarks(new Set((results[3] as any).data.map((b: any) => b.item_id)));
+    setReactions((results[4] as any).data);
+    setCertificates((results[5] as any).data.map((c: any) => c.payload));
+  };
+  const clearMemberData = () => {
+    setCurrentUser(emptyProfile); setAuthenticated(false); setRecords([]); setEnrollments([]);
+    setProgress([]); setBookmarks(new Set()); setReactions([]); setCertificates([]);
+    setCatalog([]); setIsOnboardingOpen(false); setIsPasswordRecovery(false);
+  };
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: 'notif_1',
-      title: 'Live Lab Starting Soon',
-      message: 'Sunday Sermon Visuals & Recaps with Gemini starts Thursday at 7:00 PM WAT.',
-      time: '10m ago',
-      read: false,
-      type: 'live',
-      targetView: 'live',
-    },
-    {
-      id: 'notif_2',
-      title: 'Mentor Feedback Received',
-      message: 'Kofi Mensah approved your Church Easter Campaign Challenge submission with notes.',
-      time: '1h ago',
-      read: false,
-      type: 'feedback',
-      targetView: 'challenges',
-    },
-    {
-      id: 'notif_3',
-      title: 'Streak Maintained!',
-      message: 'You have logged in and practiced for 8 consecutive days. Keep building with purpose.',
-      time: '3h ago',
-      read: true,
-      type: 'system',
-      targetView: 'growth',
-    },
-  ]);
-
-  // Sync theme class to document element & persist preference
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      root.style.colorScheme = 'dark';
-    } else {
-      root.classList.remove('dark');
-      root.style.colorScheme = 'light';
-    }
-    try {
-      localStorage.setItem('ccl_theme', theme);
-    } catch {
-      // ignore
-    }
-  }, [theme]);
-
-  // Keyboard shortcut for Cmd+K search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsSearchOpen((prev) => !prev);
+    if (!supabase) return;
+    let mounted = true;
+    const sync = async (session: Session | null, event: string) => {
+      if (!mounted) return;
+      const generation = ++authGeneration.current;
+      const switched = activeUser.current !== (session?.user.id ?? null);
+      activeUser.current = session?.user.id ?? null;
+      if (switched) { clearMemberData(); setDataLoading(Boolean(session)); }
+      try {
+        if (session) {
+          const result = await loadProfile(session.user);
+          if (!mounted || generation !== authGeneration.current) return;
+          setCurrentUser(result.user); setAuthenticated(true);
+          if (event === 'PASSWORD_RECOVERY' || new URLSearchParams(window.location.search).get('recovery') === '1') { setIsPasswordRecovery(true); setIsAuthModalOpen(true); }
+          else if (switched) { navigate('dashboard'); setIsOnboardingOpen(!result.onboarded); }
+          await Promise.all([fetchCatalog(), fetchMemberData(session.user.id)]);
+        } else {
+          clearMemberData(); navigate('public_home'); await fetchCatalog();
+        }
+        if (mounted && generation === authGeneration.current) setDataError('');
+      } catch (error) {
+        if (mounted && generation === authGeneration.current) setDataError(errorMessage(error));
+      } finally {
+        if (mounted && generation === authGeneration.current) { setAuthLoading(false); setDataLoading(false); }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Do not call async Supabase methods within its auth callback (auth lock).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setTimeout(() => { void sync(session, event); }, 0);
+    });
+    return () => { mounted = false; ++authGeneration.current; subscription.unsubscribe(); };
   }, []);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.style.colorScheme = theme;
+    try { localStorage.setItem('ccl_theme', theme); } catch { /* optional preference */ }
+  }, [theme]);
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setIsSearchOpen(v => !v); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+  // Refresh shared discussions so another user's submissions appear without re-login.
+  useEffect(() => {
+    if (!isAuthenticated || !currentUser.id) return;
+    const refresh = () => { void fetchMemberData(currentUser.id).catch(error => setDataError(errorMessage(error))); };
+    const timer = setInterval(refresh, 30000);
+    window.addEventListener('focus', refresh);
+    return () => { clearInterval(timer); window.removeEventListener('focus', refresh); };
+  }, [isAuthenticated, currentUser.id]);
 
-  const navigateWithParam = (view: AppView, paramId?: string) => {
-    if (view === 'course_detail' || view === 'course_player') {
-      if (paramId) setSelectedCourseId(paramId);
-    } else if (view === 'challenge_detail') {
-      if (paramId) setSelectedChallengeId(paramId);
-    } else if (view === 'verify_certificate') {
-      if (paramId) setSelectedCertificateId(paramId);
+  const setCurrentView = (view: AppView) => {
+    if (!view.startsWith('public_') && !isAuthenticated) {
+      setAuthModalMode('login'); setIsAuthModalOpen(true); return;
     }
+    if (view === 'admin' && !isAdmin(currentUser.role)) { setDataError('Administrator access is required.'); return; }
+    navigate(view); window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const navigateWithParam = (view: AppView, id?: string) => {
+    if (view === 'course_detail' || view === 'course_player') { if (id) setSelectedCourseId(id); }
+    if (view === 'challenge_detail' && id) setSelectedChallengeId(id);
+    if (view === 'verify_certificate' && id) setSelectedCertificateId(id);
     setCurrentView(view);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const login = (email: string, role: UserRole = 'student') => {
-    setCurrentUser((prev) => ({
-      ...prev,
-      email,
-      role,
-    }));
-    setIsAuthenticated(true);
+  const requireUser = () => {
+    if (!isAuthenticated || !currentUser.id) throw new Error('Please sign in first.');
+    return currentUser.id;
+  };
+  const perform = async (operation: () => Promise<void>) => {
+    setDataError('');
+    try { await operation(); return true; }
+    catch (error) { setDataError(errorMessage(error)); return false; }
+  };
+  const login = async (email: string, password: string) => {
+    const { error } = await backend().auth.signInWithPassword({ email: email.trim(), password });
+    if (error) throw error;
     setIsAuthModalOpen(false);
-    setCurrentView('dashboard');
   };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    setCurrentView('public_home');
-  };
-
-  const updateCurrentUser = (updates: Partial<UserProfile>) => {
-    setCurrentUser((prev) => ({ ...prev, ...updates }));
-  };
-
-  const switchRole = (newRole: UserRole) => {
-    setCurrentUser((prev) => ({ ...prev, role: newRole }));
-  };
-
-  const upgradeMembership = (tier: MembershipTier) => {
-    setCurrentUser((prev) => ({ ...prev, membershipTier: tier }));
-  };
-
-  const completeOnboarding = (prefs: Partial<UserProfile>) => {
-    setCurrentUser((prev) => ({ ...prev, ...prefs }));
-    setIsOnboardingOpen(false);
-    setCurrentView('dashboard');
-  };
-
-  const enrollInCourse = (courseId: string) => {
-    setCourses((prev) =>
-      prev.map((c) => (c.id === courseId ? { ...c, isEnrolled: true, progressPercent: c.progressPercent ?? 0 } : c))
-    );
-  };
-
-  const toggleLessonComplete = (courseId: string, lessonId: string) => {
-    setCourses((prev) =>
-      prev.map((c) => {
-        if (c.id !== courseId) return c;
-        let total = 0;
-        let completed = 0;
-        const updatedModules = c.modules.map((m) => {
-          const updatedLessons = m.lessons.map((l) => {
-            total++;
-            if (l.id === lessonId) {
-              const nextVal = !l.completed;
-              if (nextVal) completed++;
-              return { ...l, completed: nextVal };
-            }
-            if (l.completed) completed++;
-            return l;
-          });
-          return { ...m, lessons: updatedLessons };
-        });
-        const percent = total > 0 ? Math.round((completed / total) * 100) : c.progressPercent;
-        return { ...c, modules: updatedModules, progressPercent: percent };
-      })
-    );
-  };
-
-  const addChallengeSubmission = (newSub: Omit<ChallengeSubmission, 'id' | 'submittedAt' | 'reactions' | 'status'>) => {
-    const submission: ChallengeSubmission = {
-      ...newSub,
-      id: `sub_${Date.now()}`,
-      submittedAt: 'Just now',
-      status: 'submitted',
-      reactions: { cheer: 1, fire: 1, insightful: 1 },
-    };
-    setSubmissions((prev) => [submission, ...prev]);
-
-    // Also register as a project
-    const newProj: Project = {
-      id: `proj_${Date.now()}`,
-      title: submission.title,
-      cover: submission.images[0] || 'https://images.unsplash.com/photo-1518156677180-95a2893f3e9f?auto=format&fit=crop&w=800&q=80',
-      creator: {
-        id: currentUser.id,
-        name: `${currentUser.firstName} ${currentUser.lastName}`,
-        avatar: currentUser.avatar,
-        headline: currentUser.headline,
-      },
-      type: 'challenge_submission',
-      description: submission.description,
-      projectBrief: 'Submitted for official challenge evaluation.',
-      toolsUsed: submission.toolsUsed,
-      images: submission.images,
-      videoUrl: submission.videoUrl,
-      liveUrl: submission.liveUrl,
-      status: 'submitted',
-      isPublic: true,
-      challengeId: submission.challengeId,
-      createdAt: 'Just now',
-    };
-    setProjects((prev) => [newProj, ...prev]);
-  };
-
-  const createProject = (newProj: Omit<Project, 'id' | 'createdAt'>) => {
-    const project: Project = {
-      ...newProj,
-      id: `proj_${Date.now()}`,
-      createdAt: 'Just now',
-    };
-    setProjects((prev) => [project, ...prev]);
-  };
-
-  const updateProjectReview = (projectId: string, status: Project['status'], feedback?: string) => {
-    setProjects((prev) =>
-      prev.map((p) => (p.id === projectId ? { ...p, status, mentorFeedback: feedback ?? p.mentorFeedback } : p))
-    );
-  };
-
-  const createPost = (spaceId: string, spaceName: string, category: PostCategory, title: string, content: string) => {
-    const newPost: Post = {
-      id: `post_${Date.now()}`,
-      spaceId,
-      spaceName,
-      category,
-      author: {
-        id: currentUser.id,
-        name: `${currentUser.firstName} ${currentUser.lastName}`,
-        avatar: currentUser.avatar,
-        headline: currentUser.headline,
-        role: currentUser.role,
-        isMentor: currentUser.role === 'mentor',
-        isInstructor: currentUser.role === 'instructor',
-      },
-      title,
-      content,
-      createdAt: 'Just now',
-      commentsCount: 0,
-      reactions: { helpful: 1, pray: 1, inspired: 1, celebrate: 0 },
-    };
-    setPosts((prev) => [newPost, ...prev]);
-  };
-
-  const toggleReaction = (postId: string, reaction: 'helpful' | 'pray' | 'inspired' | 'celebrate') => {
-    setPosts((prev) =>
-      prev.map((p) => {
-        if (p.id !== postId) return p;
-        return {
-          ...p,
-          reactions: {
-            ...p.reactions,
-            [reaction]: p.reactions[reaction] + 1,
-          },
-        };
-      })
-    );
-  };
-
-  const toggleSavePrompt = (promptId: string) => {
-    setPrompts((prev) =>
-      prev.map((p) => (p.id === promptId ? { ...p, saved: !p.saved } : p))
-    );
-  };
-
-  const toggleBookmark = (id: string) => {
-    setBookmarks((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
+  const register = async (email: string, password: string, firstName: string, lastName: string) => {
+    const { data, error } = await backend().auth.signUp({
+      email: email.trim(), password,
+      options: { emailRedirectTo: window.location.origin, data: { first_name: firstName.trim(), last_name: lastName.trim() } },
     });
+    if (error) throw error;
+    if (data.session) setIsAuthModalOpen(false);
+    return Boolean(data.session);
   };
-
-  const markNotificationRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const logout = () => perform(async () => {
+    const { error } = await backend().auth.signOut(); if (error) throw error;
+    activeUser.current = null; ++authGeneration.current; clearMemberData(); navigate('public_home'); await fetchCatalog();
+  });
+  const resetPassword = async (email: string) => {
+    const { error } = await backend().auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/?recovery=1` });
+    if (error) throw error;
   };
-
-  const clearNotifications = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const changePassword = async (password: string) => {
+    const { error } = await backend().auth.updateUser({ password }); if (error) throw error;
+    window.history.replaceState({}, '', window.location.pathname);
+    setIsPasswordRecovery(false); setIsAuthModalOpen(false);
   };
+  const updateCurrentUser = (updates: Partial<UserProfile>, onboarded?: boolean) => perform(async () => {
+    const id = requireUser();
+    const existing = Object.fromEntries(profileFields.filter(k => k in currentUser).map(k => [k, (currentUser as any)[k]]));
+    const allowed = Object.fromEntries(profileFields.filter(k => k in updates).map(k => [k, (updates as any)[k]]));
+    for (const key of ['avatar', 'portfolioWebsite', 'githubUrl', 'youtubeUrl', 'linkedinUrl']) {
+      if (key in allowed && allowed[key] && !String(allowed[key]).startsWith('/')) allowed[key] = safeUrl(String(allowed[key]));
+    }
+    const { error } = await backend().from('ccl_profiles').update({ profile: { ...existing, ...allowed },
+      ...(onboarded === undefined ? {} : { onboarding_completed: onboarded }), updated_at: new Date().toISOString() }).eq('user_id', id);
+    if (error) throw error;
+    if (activeUser.current === id) setCurrentUser(v => ({ ...v, ...allowed }));
+  });
+  const completeOnboarding = async (updates: Partial<UserProfile>) => {
+    const ok = await updateCurrentUser(updates, true);
+    if (ok) { setIsOnboardingOpen(false); navigate('dashboard'); }
+    return ok;
+  };
+  const addRecord = async (kind: string, payload: any, target?: string, status?: string) => {
+    const userId = requireUser();
+    const row = await insertRecord(userId, kind, payload, target, status);
+    if (activeUser.current !== userId) return row;
+    setRecords(v => [row, ...v]); return row;
+  };
+  const upgradeMembership = (tier: MembershipTier) => perform(async () => {
+    await addRecord('membership_request', { requestedTier: tier });
+    setDataError('Your membership request was saved. Your plan changes after administrator approval.');
+  });
+  const enrollInCourse = (id: string) => perform(async () => {
+    const userId = requireUser();
+    if (enrollments.some(e => e.course_id === id)) return;
+    const { data, error } = await backend().from('ccl_enrollments').insert({ user_id: userId, course_id: id }).select('*').single();
+    if (error) throw error; if (activeUser.current === userId) setEnrollments(v => [...v, data]);
+  });
+  const toggleLessonComplete = (courseId: string, lessonId: string) => perform(async () => {
+    const userId = requireUser();
+    const completed = !progress.find(p => p.course_id === courseId && p.lesson_id === lessonId)?.completed;
+    const { data, error } = await backend().from('ccl_lesson_progress').upsert({ user_id: userId, course_id: courseId, lesson_id: lessonId, completed },
+      { onConflict: 'user_id,course_id,lesson_id' }).select('*').single();
+    if (error) throw error; if (activeUser.current === userId) setProgress(v => [...v.filter(p => !(p.course_id === courseId && p.lesson_id === lessonId)), data]);
+  });
+  const createProject = (input: Omit<Project, 'id' | 'createdAt'>) => perform(async () => {
+    const payload = { ...input, liveUrl: safeUrl(input.liveUrl), videoUrl: safeUrl(input.videoUrl) };
+    await addRecord('project', payload, input.courseId || input.challengeId, input.status === 'draft' ? 'draft' : 'submitted');
+  });
+  const addChallengeSubmission = (input: Omit<ChallengeSubmission, 'id' | 'submittedAt' | 'reactions' | 'status'>) => perform(async () => {
+    await addRecord('submission', { ...input, images: input.images.filter(Boolean).map(v => safeUrl(v)),
+      liveUrl: safeUrl(input.liveUrl), videoUrl: safeUrl(input.videoUrl) }, input.challengeId);
+  });
+  const createPost = (spaceId: string, spaceName: string, category: PostCategory, title: string, content: string) => perform(async () => {
+    if (!title.trim() || !content.trim()) throw new Error('Add a title and message.');
+    await addRecord('post', { spaceId, spaceName, category, title: title.trim(), content: content.trim() });
+  });
+  const saveActivity = (kind: 'comment' | 'lesson_comment' | 'live_chat' | 'assignment' | 'team_request', payload: any, target?: string) => perform(async () => {
+    if (kind === 'assignment') payload = { ...payload, url: safeUrl(payload.url) };
+    await addRecord(kind, payload, target);
+  });
+  const updateProjectReview = (id: string, status: Project['status'], feedback?: string) => perform(async () => {
+    if (!isAdmin(currentUser.role)) throw new Error('Administrator access is required.');
+    const record = dataRecords.find(r => r.id === id); if (!record) throw new Error('Project not found.');
+    const { data, error } = await backend().from('ccl_records').update({ status, payload: { ...record.payload, mentorFeedback: feedback } }).eq('id', id).select('*').single();
+    if (error) throw error; setRecords(v => v.map(r => r.id === id ? data : r));
+  });
+  const toggleReaction = (postId: string, reaction: 'helpful' | 'pray' | 'inspired' | 'celebrate') => perform(async () => {
+    const userId = requireUser();
+    const own = reactions.some(r => r.user_id === userId && r.post_id === postId && r.reaction === reaction);
+    const query = backend().from('ccl_reactions');
+    const { error } = own ? await query.delete().eq('user_id', userId).eq('post_id', postId).eq('reaction', reaction)
+      : await query.insert({ user_id: userId, post_id: postId, reaction });
+    if (error) throw error;
+    if (activeUser.current !== userId) return;
+    setReactions(v => own ? v.filter(r => !(r.user_id === userId && r.post_id === postId && r.reaction === reaction))
+      : [...v, { user_id: userId, post_id: postId, reaction }]);
+  });
+  const toggleBookmark = (itemId: string) => perform(async () => {
+    const userId = requireUser(); const saved = bookmarks.has(itemId);
+    const query = backend().from('ccl_bookmarks');
+    const { error } = saved ? await query.delete().eq('user_id', userId).eq('item_id', itemId)
+      : await query.insert({ user_id: userId, item_id: itemId });
+    if (error) throw error;
+    if (activeUser.current !== userId) return;
+    setBookmarks(v => { const next = new Set(v); saved ? next.delete(itemId) : next.add(itemId); return next; });
+  });
+  const publishCatalog = (kind: CatalogKind, payload: any, published = false) => perform(async () => {
+    if (!isAdmin(currentUser.role)) throw new Error('Administrator access is required.');
+    const { error } = await backend().from('ccl_catalog').upsert({ kind, id: payload.id, payload, published });
+    if (error) throw error; await fetchCatalog();
+  });
 
-  return (
-    <AppContext.Provider
-      value={{
-        currentView,
-        setCurrentView,
-        navigateWithParam,
-        selectedCourseId,
-        setSelectedCourseId,
-        selectedLessonId,
-        setSelectedLessonId,
-        selectedChallengeId,
-        setSelectedChallengeId,
-        selectedCertificateId,
-        setSelectedCertificateId,
-        currentUser,
-        isAuthenticated,
-        setIsAuthenticated,
-        login,
-        logout,
-        updateCurrentUser,
-        switchRole,
-        upgradeMembership,
-        isOnboardingOpen,
-        setIsOnboardingOpen,
-        completeOnboarding,
-        theme,
-        toggleTheme,
-        isSearchOpen,
-        setIsSearchOpen,
-        isAssistantOpen,
-        setIsAssistantOpen,
-        isAuthModalOpen,
-        setIsAuthModalOpen,
-        authModalMode,
-        setAuthModalMode,
-        courses,
-        enrollInCourse,
-        toggleLessonComplete,
-        challenges,
-        submissions,
-        addChallengeSubmission,
-        projects,
-        createProject,
-        updateProjectReview,
-        posts,
-        createPost,
-        toggleReaction,
-        prompts,
-        toggleSavePrompt,
-        resources,
-        bookmarks,
-        toggleBookmark,
-        notifications,
-        markNotificationRead,
-        clearNotifications,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
-  );
+  const payloads = <T,>(kind: CatalogKind) => catalogRows.filter(r => r.kind === kind).map(r => ({ ...r.payload, published: r.published }) as T);
+  const courses = payloads<Course>('course').map(c => {
+    const modules = c.modules.map(m => ({ ...m, lessons: m.lessons.map(l => ({ ...l,
+      completed: Boolean(progress.find(p => p.course_id === c.id && p.lesson_id === l.id)?.completed) })) }));
+    const lessons = modules.flatMap(m => m.lessons);
+    return { ...c, modules, isEnrolled: enrollments.some(e => e.course_id === c.id),
+      progressPercent: lessons.length ? Math.round(100 * lessons.filter(l => l.completed).length / lessons.length) : 0 };
+  });
+  const projects: Project[] = dataRecords.filter(r => (r.kind === 'project' || r.kind === 'submission') && (r.user_id === currentUser.id || isAdmin(currentUser.role))).map(r => ({
+    ...r.payload, id: r.id, status: r.status, createdAt: new Date(r.created_at).toLocaleString(),
+    ...(r.kind === 'submission' ? { type: 'challenge_submission', cover: r.payload.images?.[0] || '/avatar.svg',
+      projectBrief: r.payload.description, isPublic: false } : {}),
+  }));
+  const submissions: ChallengeSubmission[] = dataRecords.filter(r => r.kind === 'submission').map(r => ({ ...r.payload,
+    id: r.id, status: r.status, submittedAt: new Date(r.created_at).toLocaleString(), reactions: { cheer: 0, fire: 0, insightful: 0 } }));
+  const posts: Post[] = dataRecords.filter(r => r.kind === 'post').map(r => ({ ...r.payload, id: r.id,
+    author: r.payload.creator, createdAt: new Date(r.created_at).toLocaleString(),
+    commentsCount: dataRecords.filter(c => c.kind === 'comment' && c.target_id === r.id).length,
+    reactions: Object.fromEntries(['helpful','pray','inspired','celebrate'].map(k => [k, reactions.filter(x => x.post_id === r.id && x.reaction === k).length])),
+  }));
+  const commentsFor = (kind: string, target: string) => dataRecords.filter(r => r.kind === kind && r.target_id === target).map(r => ({
+    id: r.id, user: r.payload.creator?.name || 'Creator', author: r.payload.creator?.name || 'Creator',
+    text: r.payload.text, time: new Date(r.created_at).toLocaleString(),
+  }));
+  const prompts = payloads<PromptItem>('prompt').map(p => ({ ...p, saved: bookmarks.has(p.id) }));
+  const resources = payloads<ResourceItem>('resource');
+  const notifications: NotificationItem[] = [];
+  const hoursLearned = Math.round(courses.flatMap(c => c.modules.flatMap(m => m.lessons)).filter(l => l.completed).reduce((n,l) => n+l.durationMinutes,0)/60*10)/10;
+
+  return { currentView, setCurrentView, navigateWithParam, currentUser: { ...currentUser, hoursLearned },
+    authLoading, dataLoading, isAuthenticated, dataError, setDataError, isBackendConfigured,
+    login, register, logout, resetPassword, changePassword, isPasswordRecovery, updateCurrentUser, completeOnboarding,
+    upgradeMembership, selectedCourseId, setSelectedCourseId, selectedLessonId, setSelectedLessonId,
+    selectedChallengeId, setSelectedChallengeId, selectedCertificateId, setSelectedCertificateId,
+    isOnboardingOpen, setIsOnboardingOpen, isAuthModalOpen, setIsAuthModalOpen, authModalMode, setAuthModalMode,
+    theme, toggleTheme: () => setTheme(v => v === 'dark' ? 'light' : 'dark'), isSearchOpen, setIsSearchOpen,
+    isAssistantOpen, setIsAssistantOpen, courses, enrollInCourse, toggleLessonComplete,
+    challenges: payloads<Challenge>('challenge'), submissions, addChallengeSubmission, projects, createProject,
+    updateProjectReview, posts, createPost, toggleReaction, prompts, toggleSavePrompt: toggleBookmark,
+    resources, bookmarks, toggleBookmark, notifications, markNotificationRead: (_id: string) => {}, clearNotifications: () => {},
+    dataRecords, commentsFor, saveActivity, certificates, publishCatalog,
+    liveSessions: payloads<LiveSession>('live'), opportunities: payloads<Opportunity>('opportunity'),
+  };
+}
+
+const AppContext = createContext<ReturnType<typeof useAppState> | null>(null);
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const value = useAppState();
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
-
-export const useApp = () => {
+export function useApp() {
   const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
+  if (!context) throw new Error('useApp must be inside AppProvider');
   return context;
-};
+}

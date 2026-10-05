@@ -13,6 +13,9 @@ import {
   Layers,
   Award,
   Globe,
+  FolderGit2,
+  Bookmark,
+  Briefcase,
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -28,17 +31,18 @@ export const AppSidebar: React.FC = () => {
   ];
 
   const secondaryNavItems: { label: string; view: AppView; icon: React.ElementType }[] = [
+    { label: 'Projects', view: 'projects', icon: FolderGit2 },
+    { label: 'Resources', view: 'resources', icon: Bookmark },
+    { label: 'Opportunities', view: 'opportunities', icon: Briefcase },
     { label: 'Public Site', view: 'public_home', icon: Globe },
     { label: 'Challenges', view: 'challenges', icon: Award },
     { label: 'Community', view: 'community', icon: Users },
     { label: 'Church Team', view: 'teams', icon: Building2 },
   ];
 
-  const isAdminOrMentor =
+  const isAdministrator =
     currentUser.role === 'administrator' ||
-    currentUser.role === 'super_admin' ||
-    currentUser.role === 'instructor' ||
-    currentUser.role === 'mentor';
+    currentUser.role === 'super_admin';
 
   return (
     <aside className="hidden lg:flex w-64 flex-col justify-between bg-[#0e0f12] text-white p-6 select-none shrink-0 min-h-screen border-r border-[#1a1c22]">
@@ -110,7 +114,7 @@ export const AppSidebar: React.FC = () => {
             );
           })}
 
-          {isAdminOrMentor && (
+          {isAdministrator && (
             <button
               onClick={() => setCurrentView('admin')}
               className={`flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-medium transition-colors ${

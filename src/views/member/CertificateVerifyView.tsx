@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { CERTIFICATES } from '../../data/seedData';
+
 import {
   ShieldCheck,
   Award,
@@ -12,11 +12,12 @@ import {
 } from 'lucide-react';
 
 export const CertificateVerifyView: React.FC = () => {
-  const { selectedCertificateId, setCurrentView } = useApp();
+  const { selectedCertificateId, setCurrentView, certificates: CERTIFICATES } = useApp();
 
   const cert =
-    CERTIFICATES.find((c) => c.certificateId === selectedCertificateId) ||
-    CERTIFICATES[0];
+    CERTIFICATES.find((c) => c.certificateId === selectedCertificateId);
+
+  if (!cert) return <div className="rounded-3xl bg-white border p-8"><h1 className="text-2xl font-serif-ccl">Certificate not found</h1><p className="mt-2 text-sm text-zinc-600">No issued certificate matches this reference.</p></div>;
 
   return (
     <div className="space-y-8 pb-20 max-w-3xl mx-auto text-zinc-900">

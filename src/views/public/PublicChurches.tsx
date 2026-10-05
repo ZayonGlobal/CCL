@@ -1,3 +1,5 @@
+import { saveInquiry } from '../../services/data';
+import { errorMessage } from '../../services/supabase';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
@@ -23,9 +25,14 @@ export const PublicChurches: React.FC = () => {
   const [contactEmail, setContactEmail] = useState('');
   const [volunteerCount, setVolunteerCount] = useState('5-10');
 
-  const handleInquirySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setInquirySubmitted(true);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
+  const handleInquirySubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); if (saving) return;
+    setSaving(true); setFormError('');
+    try { await saveInquiry({ name: contactName, email: contactEmail, subject: 'Church team request', message: `Church: ${churchName}. Volunteers: ${volunteerCount}` }); setInquirySubmitted(true); }
+    catch (error) { setFormError(errorMessage(error)); }
+    finally { setSaving(false); }
   };
 
   return (
@@ -288,11 +295,12 @@ export const PublicChurches: React.FC = () => {
               <CheckCircle2 className="h-10 w-10 text-zinc-900 mx-auto" />
               <h3 className="font-serif-ccl text-xl font-bold text-zinc-950">Inquiry Received</h3>
               <p className="text-xs text-zinc-600 max-w-md mx-auto">
-                Thank you! Our church partnership coordinator will contact {contactEmail || 'you'} within 24 hours with custom seat pricing and pilot access.
+                Thank you! Your request is saved for administrator review, with {contactEmail} as your contact address.
               </p>
             </div>
           ) : (
             <form onSubmit={handleInquirySubmit} className="space-y-4 pt-2">
+                {formError && <p role="alert" className="text-sm text-rose-700">{formError}</p>}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-zinc-700">Church / Organization Name</label>
@@ -347,7 +355,7 @@ export const PublicChurches: React.FC = () => {
 
               <div className="pt-2 text-center">
                 <button
-                  type="submit"
+                  type="submit" disabled={saving}
                   className="rounded-full bg-black px-8 py-3.5 text-xs sm:text-sm font-semibold text-white hover:bg-zinc-800 transition-colors shadow-sm inline-flex items-center gap-2"
                 >
                   <Send className="h-3.5 w-3.5" />

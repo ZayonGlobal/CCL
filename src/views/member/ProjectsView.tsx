@@ -24,22 +24,25 @@ export const ProjectsView: React.FC = () => {
   const [type, setType] = useState<Project['type']>('personal');
   const [description, setDescription] = useState('');
   const [projectBrief, setProjectBrief] = useState('');
-  const [toolsUsed, setToolsUsed] = useState('Cursor, Tailwind CSS, Claude 3.5 Sonnet');
+  const [toolsUsed, setToolsUsed] = useState('');
   const [liveUrl, setLiveUrl] = useState('');
-  const [isPublic, setIsPublic] = useState(true);
+  const isPublic = false;
 
   const filteredProjects = projects.filter((p) => {
     if (filterStatus === 'all') return true;
     return p.status === filterStatus;
   });
 
-  const handleCreate = (e: React.FormEvent) => {
+  const [saving, setSaving] = useState(false);
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    createProject({
+    if (saving) return;
+    setSaving(true);
+    const saved = await createProject({
       title,
-      cover: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80',
+      cover: '/avatar.svg',
       creator: {
         id: currentUser.id,
         name: `${currentUser.firstName} ${currentUser.lastName}`,
@@ -50,12 +53,14 @@ export const ProjectsView: React.FC = () => {
       description,
       projectBrief,
       toolsUsed: toolsUsed.split(',').map((t) => t.trim()),
-      images: ['https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80'],
+      images: [],
       liveUrl: liveUrl.trim() || undefined,
       status: 'submitted',
       isPublic,
     });
 
+    setSaving(false);
+    if (!saved) return;
     setIsCreateOpen(false);
     setTitle('');
     setDescription('');
@@ -73,8 +78,8 @@ export const ProjectsView: React.FC = () => {
             Creator Projects Portfolio
           </h1>
           <p className="text-xs sm:text-sm text-zinc-600 mt-1 max-w-xl">
-            Practical deliverables built across courses and monthly challenges. Approved projects
-            display on your public profile and verify your skills to churches and clients.
+            Save your creative work and submit it for administrator review. Projects are visible
+            to you and platform administrators.
           </p>
         </div>
 
@@ -171,7 +176,7 @@ export const ProjectsView: React.FC = () => {
 
             <div className="p-6 pt-0 flex items-center justify-between border-t border-gray-100 text-xs">
               <span className="text-[11px] font-mono text-zinc-400">
-                {proj.isPublic ? 'Public on Portfolio' : 'Private Project'}
+                Private Project
               </span>
               {proj.liveUrl && (
                 <a
@@ -274,7 +279,7 @@ export const ProjectsView: React.FC = () => {
               </div>
 
               <button
-                type="submit"
+                type="submit" disabled={saving}
                 className="w-full rounded-full bg-black hover:bg-zinc-800 text-white py-3 text-xs font-semibold transition-colors shadow-2xs mt-2"
               >
                 Add Project to Portfolio

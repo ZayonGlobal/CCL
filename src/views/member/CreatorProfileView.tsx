@@ -15,7 +15,7 @@ import {
   Eye,
   CheckCircle2,
 } from 'lucide-react';
-import { CERTIFICATES } from '../../data/seedData';
+
 
 export const CreatorProfileView: React.FC = () => {
   const { currentUser, updateCurrentUser, projects, navigateWithParam } = useApp();
@@ -25,25 +25,27 @@ export const CreatorProfileView: React.FC = () => {
   const [headline, setHeadline] = useState(currentUser.headline);
   const [bio, setBio] = useState(currentUser.bio);
   const [location, setLocation] = useState(currentUser.location);
-  const [isPublic, setIsPublic] = useState(currentUser.isPublicProfile);
   const [availFreelance, setAvailFreelance] = useState(currentUser.availableForFreelance);
   const [availMinistry, setAvailMinistry] = useState(currentUser.availableForMinistry);
   const [availCollab, setAvailCollab] = useState(currentUser.availableForCollaboration);
 
-  const handleSave = () => {
-    updateCurrentUser({
+  const [saving, setSaving] = useState(false);
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    const saved = await updateCurrentUser({
       headline,
       bio,
       location,
-      isPublicProfile: isPublic,
       availableForFreelance: availFreelance,
       availableForMinistry: availMinistry,
       availableForCollaboration: availCollab,
     });
-    setIsEditing(false);
+    setSaving(false);
+    if (saved) setIsEditing(false);
   };
 
-  const publicProjects = projects.filter((p) => p.isPublic);
+  const publicProjects = projects.filter((p) => p.creator.id === currentUser.id);
 
   return (
     <div className="space-y-8 pb-20 max-w-4xl mx-auto text-zinc-900">
@@ -58,7 +60,7 @@ export const CreatorProfileView: React.FC = () => {
           <span className="text-zinc-600">
             Profile Status:{' '}
             <strong className="text-zinc-950 font-semibold">
-              {currentUser.isPublicProfile ? 'Publicly Visible in Directory' : 'Private (Members Only)'}
+              Private Profile · Visible to You and Administrators
             </strong>
           </span>
         </div>
@@ -174,15 +176,6 @@ export const CreatorProfileView: React.FC = () => {
             </div>
 
             <div className="space-y-2 pt-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
-                  className="rounded border-gray-300 text-black focus:ring-black"
-                />
-                <span className="font-semibold text-zinc-900">Make Profile Public in CCL Directory</span>
-              </label>
 
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -215,7 +208,7 @@ export const CreatorProfileView: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={handleSave}
+                onClick={handleSave} disabled={saving}
                 className="rounded-full bg-black hover:bg-zinc-800 px-6 py-2 text-xs font-semibold text-white transition-colors shadow-2xs"
               >
                 Save Profile
@@ -228,7 +221,7 @@ export const CreatorProfileView: React.FC = () => {
       {/* Public Projects Showcase */}
       <div className="space-y-4">
         <h2 className="font-serif-ccl text-2xl font-bold text-zinc-950">
-          Featured Portfolio Projects ({publicProjects.length})
+          Your Portfolio Projects ({publicProjects.length})
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

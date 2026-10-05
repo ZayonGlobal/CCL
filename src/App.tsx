@@ -43,11 +43,22 @@ import { CertificateVerifyView } from './views/member/CertificateVerifyView';
 import { AdminDashboardView } from './views/admin/AdminDashboardView';
 
 export const AppContent: React.FC = () => {
-  const { currentView, isAuthenticated, theme } = useApp();
+  const { currentView, isAuthenticated, theme, authLoading, dataLoading, dataError, setDataError, courses, challenges, currentUser, selectedCourseId } = useApp();
 
-  const isPublicPage = currentView.startsWith('public_');
+  const isPublicPage = currentView.startsWith('public_') || !isAuthenticated;
+  if (authLoading || (!isPublicPage && dataLoading)) return <div role="status" className="min-h-screen flex items-center justify-center bg-white text-zinc-700">Loading your Creator Lab…</div>;
 
   const renderView = () => {
+    if (!isPublicPage && !isAuthenticated) return <PublicHome />;
+    if (['course_detail', 'course_player'].includes(currentView) && !courses.length)
+      return <div className="bg-white border rounded-3xl p-8"><h1 className="text-2xl font-serif-ccl">Courses are coming soon</h1><p className="mt-2 text-sm">Published courses will appear here.</p></div>;
+    const selectedCourse = courses.find(c => c.id === selectedCourseId) || courses[0];
+    if (currentView === 'course_player' && !selectedCourse?.modules.some(m => m.lessons.length))
+      return <div className="bg-white border rounded-3xl p-8"><h1 className="text-2xl font-serif-ccl">Lessons are coming soon</h1><p className="mt-2 text-sm">This course has no published lessons yet.</p></div>;
+    if (currentView === 'challenge_detail' && !challenges.length)
+      return <div className="bg-white border rounded-3xl p-8">No challenges are open yet.</div>;
+    if (currentView === 'admin' && !['administrator','super_admin'].includes(currentUser.role))
+      return <div className="bg-white border rounded-3xl p-8">Administrator access is required.</div>;
     switch (currentView) {
       // Public Pages
       case 'public_home':
@@ -120,6 +131,7 @@ export const AppContent: React.FC = () => {
         theme === 'dark' ? 'dark bg-[#090a0f] text-[#f8fafc]' : 'bg-[#fcfcfd] text-zinc-900'
       } flex flex-col font-sans selection:bg-black selection:text-white transition-colors duration-200`}
     >
+      {dataError && <div role="alert" className="fixed top-4 left-4 right-4 z-[70] max-w-xl mx-auto rounded-2xl bg-white border border-rose-200 p-4 shadow-lg text-sm text-rose-800 flex justify-between gap-4"><span>{dataError}</span><button aria-label="Dismiss message" onClick={() => setDataError('')}>×</button></div>}
       {isPublicPage ? (
         // Public Layout
         <div className="flex flex-col min-h-screen">

@@ -43,18 +43,19 @@ export const ChallengeDetailView: React.FC = () => {
   // Submit form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [toolsUsed, setToolsUsed] = useState('Midjourney v6.1, Canva Pro, Claude 3.5 Sonnet');
+  const [toolsUsed, setToolsUsed] = useState('');
   const [liveUrl, setLiveUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [imageUrl, setImageUrl] = useState(
-    'https://images.unsplash.com/photo-1518156677180-95a2893f3e9f?auto=format&fit=crop&w=800&q=80'
-  );
+  const [imageUrl, setImageUrl] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [saving, setSaving] = useState(false);
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) return;
 
-    addChallengeSubmission({
+    if (saving) return;
+    setSaving(true);
+    const saved = await addChallengeSubmission({
       challengeId: challenge.id,
       challengeTitle: challenge.title,
       creator: {
@@ -72,6 +73,8 @@ export const ChallengeDetailView: React.FC = () => {
       videoUrl: videoUrl.trim() || undefined,
     });
 
+    setSaving(false);
+    if (!saved) return;
     setIsSubmitModalOpen(false);
     setActiveTab('submissions');
     setTitle('');
@@ -348,7 +351,7 @@ export const ChallengeDetailView: React.FC = () => {
               </div>
 
               <button
-                type="submit"
+                type="submit" disabled={saving}
                 className="w-full rounded-full bg-black hover:bg-zinc-800 text-white py-3 text-xs font-semibold transition-colors shadow-2xs mt-2"
               >
                 Submit Project for Review

@@ -16,7 +16,7 @@ import {
 import { Post, PostCategory } from '../../types';
 
 export const CommunityView: React.FC = () => {
-  const { posts, toggleReaction, createPost, currentUser } = useApp();
+  const { posts, toggleReaction, createPost, currentUser, commentsFor, saveActivity } = useApp();
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('all');
   const [isNewPostOpen, setIsNewPostOpen] = useState(false);
 
@@ -26,44 +26,38 @@ export const CommunityView: React.FC = () => {
   const [postCategory, setPostCategory] = useState<PostCategory>('Discussion');
   const [postContent, setPostContent] = useState('');
 
-  // Local replies added by user
-  const [localReplies, setLocalReplies] = useState<Record<string, { id: string; author: string; text: string; time: string }[]>>({});
   const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   const filteredPosts = posts.filter((p) => {
     if (selectedSpaceId === 'all') return true;
     return p.spaceId === selectedSpaceId;
   });
 
-  const handleCreatePost = (e: React.FormEvent) => {
+  const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!postTitle.trim() || !postContent.trim()) return;
 
     const spaceObj = COMMUNITY_SPACES.find((s) => s.id === postSpaceId);
     const spaceName = spaceObj ? spaceObj.name : 'General';
 
-    createPost(postSpaceId, spaceName, postCategory, postTitle, postContent);
+    if (saving) return;
+    setSaving(true);
+    const saved = await createPost(postSpaceId, spaceName, postCategory, postTitle, postContent);
+    setSaving(false);
+    if (!saved) return;
     setIsNewPostOpen(false);
     setPostTitle('');
     setPostContent('');
   };
 
-  const handleSendReply = (postId: string) => {
+  const handleSendReply = async (postId: string) => {
     const text = (replyInputs[postId] || '').trim();
-    if (!text) return;
-    setLocalReplies((prev) => ({
-      ...prev,
-      [postId]: [
-        ...(prev[postId] || []),
-        {
-          id: `rep_${Date.now()}`,
-          author: `${currentUser.firstName} ${currentUser.lastName}`,
-          text,
-          time: 'Just now',
-        },
-      ],
-    }));
-    setReplyInputs((prev) => ({ ...prev, [postId]: '' }));
+    if (!text || saving) return;
+    setSaving(true);
+    const saved = await saveActivity('comment', { text }, postId);
+    setSaving(false);
+    if (saved) setReplyInputs(prev => ({ ...prev, [postId]: '' }));
   };
 
   return (
@@ -138,7 +132,7 @@ export const CommunityView: React.FC = () => {
         {/* Right Column (3 spans): Posts Feed */}
         <div className="lg:col-span-3 space-y-4">
           {filteredPosts.map((post) => {
-            const replies = localReplies[post.id] || [];
+            const replies = commentsFor('comment', post.id);
             return (
               <div
                 key={post.id}
@@ -194,7 +188,7 @@ export const CommunityView: React.FC = () => {
                   </button>
                   <div className="flex items-center gap-1.5 font-medium">
                     <MessageSquare className="h-4 w-4" />
-                    <span>{post.commentsCount + replies.length} replies</span>
+                    <span>{post.commentsCount} replies</span>
                   </div>
                 </div>
 
@@ -310,7 +304,7 @@ export const CommunityView: React.FC = () => {
               </div>
 
               <button
-                type="submit"
+                type="submit" disabled={saving}
                 className="w-full rounded-full bg-black hover:bg-zinc-800 text-white py-3 text-xs font-semibold transition-colors shadow-2xs mt-2"
               >
                 Publish Discussion Post

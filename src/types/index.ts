@@ -30,6 +30,8 @@ export interface UserProfile {
   membershipTier: MembershipTier;
   learningLevel: LearningLevel;
   headline: string;
+  whyJoining?: string;
+  preferredLearningPath?: string;
   bio: string;
   country: string;
   location: string;

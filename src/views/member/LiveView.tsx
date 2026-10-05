@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { LIVE_SESSIONS } from '../../data/seedData';
+
 import {
   Tv,
   Calendar,
@@ -19,21 +19,19 @@ import {
 import { LiveSession } from '../../types';
 
 export const LiveView: React.FC = () => {
-  const { currentUser } = useApp();
-  const [sessions, setSessions] = useState<LiveSession[]>(LIVE_SESSIONS);
-  const [activeSession, setActiveSession] = useState<LiveSession>(LIVE_SESSIONS[0]);
-  const [reminderSet, setReminderSet] = useState(false);
+  const { currentUser, liveSessions: sessions, commentsFor, saveActivity, publishCatalog, bookmarks, toggleBookmark } = useApp();
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const activeSession = sessions.find(s => s.id === sessionId) || sessions[0];
+  const setActiveSession = (session: LiveSession) => setSessionId(session.id);
+  const reminderSet = activeSession ? bookmarks.has(activeSession.id) : false;
+  const [saving, setSaving] = useState(false);
   const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState([
-    { id: '1', user: 'Emmanuel A.', text: 'Excited for this session! High-contrast slides are essential for LED screens.', time: '18:45' },
-    { id: '2', user: 'Grace E.', text: 'Will the Figma template link be shared during the broadcast?', time: '18:48' },
-    { id: '3', user: 'Pastor Tunde', text: 'Yes, full Figma and Canva templates are linked in the Session Resources tab!', time: '18:50' },
-  ]);
+  const chatMessages = activeSession ? commentsFor('live_chat', activeSession.id) : [];
 
   const [customVideoId, setCustomVideoId] = useState('');
-  const isAdmin = currentUser.role === 'administrator' || currentUser.role === 'super_admin' || currentUser.role === 'instructor';
+  const isAdmin = currentUser.role === 'administrator' || currentUser.role === 'super_admin';
 
-  const handleUpdateStream = (e: React.FormEvent) => {
+  const handleUpdateStream = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customVideoId.trim()) return;
     let id = customVideoId.trim();
@@ -45,24 +43,20 @@ export const LiveView: React.FC = () => {
       id = id.split('live/')[1].split('?')[0];
     }
 
-    setActiveSession((prev) => ({ ...prev, youtubeVideoId: id }));
-    setCustomVideoId('');
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return;
+    setSaving(true);
+    const saved = await publishCatalog('live', { ...activeSession, youtubeVideoId: id }, true);
+    setSaving(false); if (saved) setCustomVideoId('');
   };
 
-  const handleSendChat = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        id: `c_${Date.now()}`,
-        user: `${currentUser.firstName} ${currentUser.lastName}`,
-        text: chatInput,
-        time: 'Just now',
-      },
-    ]);
-    setChatInput('');
+  const handleSendChat = async (e: React.FormEvent) => {
+    e.preventDefault(); if (!chatInput.trim() || saving) return;
+    setSaving(true);
+    const saved = await saveActivity('live_chat', { text: chatInput.trim() }, activeSession.id);
+    setSaving(false); if (saved) setChatInput('');
   };
+
+  if (!activeSession) return <div className="rounded-3xl bg-white border p-8"><h1 className="font-serif-ccl text-3xl">Live Labs</h1><p className="text-sm text-zinc-600 mt-3">New sessions will appear here when they are published.</p></div>;
 
   return (
     <div className="space-y-8 pb-20 text-zinc-900">
@@ -84,7 +78,7 @@ export const LiveView: React.FC = () => {
 
         {/* Calendar reminder CTA */}
         <button
-          onClick={() => setReminderSet(!reminderSet)}
+          onClick={() => toggleBookmark(activeSession.id)}
           className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold transition-colors shadow-2xs ${
             reminderSet
               ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
@@ -92,7 +86,7 @@ export const LiveView: React.FC = () => {
           }`}
         >
           <Bell className="h-4 w-4 text-zinc-800" />
-          <span>{reminderSet ? 'Reminder Added to Calendar ✓' : 'Add Next Session to Calendar'}</span>
+          <span>{reminderSet ? 'Session Saved ✓' : 'Save Session'}</span>
         </button>
       </div>
 
@@ -189,7 +183,7 @@ export const LiveView: React.FC = () => {
                   className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:border-black"
                 />
                 <button
-                  type="submit"
+                  type="submit" disabled={saving}
                   className="rounded-xl bg-black hover:bg-zinc-800 text-white px-4 py-2 text-xs font-semibold transition-colors"
                 >
                   Update Stream
@@ -235,7 +229,7 @@ export const LiveView: React.FC = () => {
               className="flex-1 rounded-full border border-gray-200 bg-[#f9fafb] px-3.5 py-2 text-xs text-zinc-900 focus:outline-none focus:border-black"
             />
             <button
-              type="submit"
+              type="submit" disabled={saving}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-black hover:bg-zinc-800 text-white shrink-0 shadow-2xs"
             >
               <Send className="h-3.5 w-3.5" />

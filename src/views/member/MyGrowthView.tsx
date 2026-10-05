@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { USER_SKILLS, ACHIEVEMENTS, CERTIFICATES } from '../../data/seedData';
+import type { UserSkill, Achievement } from '../../types';
 import {
   TrendingUp,
   Flame,
@@ -15,8 +15,10 @@ import {
 } from 'lucide-react';
 
 export const MyGrowthView: React.FC = () => {
-  const { currentUser, courses, projects, navigateWithParam } = useApp();
+  const { currentUser, courses, projects, navigateWithParam, certificates: CERTIFICATES } = useApp();
 
+  const USER_SKILLS: UserSkill[] = [];
+  const ACHIEVEMENTS: Achievement[] = [];
   const completedCourses = courses.filter((c) => (c.progressPercent || 0) >= 100).length;
   const inProgressCourses = courses.filter((c) => (c.progressPercent || 0) > 0 && (c.progressPercent || 0) < 100).length;
 
@@ -52,7 +54,7 @@ export const MyGrowthView: React.FC = () => {
           <div className="text-2xl font-bold text-zinc-950 font-serif-ccl mt-1">
             {currentUser.hoursLearned}h
           </div>
-          <div className="text-[10px] text-zinc-500 mt-1 font-mono">Verified lab time</div>
+          <div className="text-[10px] text-zinc-500 mt-1 font-mono">Completed lesson duration</div>
         </div>
 
         <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">

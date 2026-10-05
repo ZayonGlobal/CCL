@@ -24,7 +24,6 @@ export const Navbar: React.FC = () => {
     logout,
     setIsAuthModalOpen,
     setAuthModalMode,
-    switchRole,
     setIsAssistantOpen,
   } = useApp();
 

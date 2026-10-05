@@ -23,7 +23,6 @@ export const MemberTopBar: React.FC = () => {
     setIsSearchOpen,
     notifications,
     markNotificationRead,
-    switchRole,
     setIsAssistantOpen,
   } = useApp();
 
@@ -105,14 +104,14 @@ export const MemberTopBar: React.FC = () => {
           )}
         </div>
 
-        {/* User Profile - Matching Screenshot: Circular avatar + Isaac + Chevron */}
+        {/* Signed-in profile */}
         <div className="relative">
           <button
             onClick={() => setUserDropdownOpen(!userDropdownOpen)}
             className="flex items-center gap-2.5 rounded-full p-1 pr-2 hover:bg-black/[0.04] transition-colors focus:outline-none"
           >
             <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+              src={currentUser.avatar}
               alt={currentUser.firstName}
               className="h-8 w-8 rounded-full object-cover border border-gray-300"
             />
@@ -153,7 +152,7 @@ export const MemberTopBar: React.FC = () => {
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-zinc-100 text-left"
                 >
                   <Building2 className="h-3.5 w-3.5 text-zinc-500" />
-                  <span>Church Team (CSMC)</span>
+                  <span>Team Requests</span>
                 </button>
                 <button
                   onClick={() => {
@@ -166,9 +165,7 @@ export const MemberTopBar: React.FC = () => {
                   <span>Switch to Public Website</span>
                 </button>
                 {(currentUser.role === 'administrator' ||
-                  currentUser.role === 'super_admin' ||
-                  currentUser.role === 'instructor' ||
-                  currentUser.role === 'mentor') && (
+                  currentUser.role === 'super_admin') && (
                   <button
                     onClick={() => {
                       setCurrentView('admin');
@@ -180,31 +177,6 @@ export const MemberTopBar: React.FC = () => {
                     <span>Admin Operations Console</span>
                   </button>
                 )}
-              </div>
-
-              {/* Role Switcher for easy evaluation testing */}
-              <div className="pt-1 border-t border-gray-100">
-                <div className="px-3 py-1 text-[10px] font-mono uppercase text-zinc-400">
-                  Switch Active Role
-                </div>
-                <div className="grid grid-cols-2 gap-1 px-1">
-                  {(['student', 'mentor', 'administrator'] as UserRole[]).map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => {
-                        switchRole(r);
-                        setUserDropdownOpen(false);
-                      }}
-                      className={`text-left text-[11px] px-2 py-1 rounded capitalize ${
-                        currentUser.role === r
-                          ? 'bg-zinc-900 text-white font-semibold'
-                          : 'hover:bg-zinc-100 text-zinc-600'
-                      }`}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div className="pt-2 border-t border-gray-100 mt-1">

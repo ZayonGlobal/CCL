@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
-import { COURSES } from '../../data/seedData';
+
 import {
   BookOpen,
   Clock,
@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export const PublicCourses: React.FC = () => {
-  const { setCurrentView, navigateWithParam, setIsAuthModalOpen, setAuthModalMode } = useApp();
+  const { courses, setCurrentView, navigateWithParam, setIsAuthModalOpen, setAuthModalMode } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLab, setSelectedLab] = useState('all');
 
@@ -31,7 +31,7 @@ export const PublicCourses: React.FC = () => {
   ];
 
   const filteredCourses = useMemo(() => {
-    return COURSES.filter((c) => {
+    return courses.filter((c) => {
       const matchesSearch =
         c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.shortDesc.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -39,7 +39,7 @@ export const PublicCourses: React.FC = () => {
       const matchesLab = selectedLab === 'all' || c.labId === selectedLab;
       return matchesSearch && matchesLab;
     });
-  }, [searchQuery, selectedLab]);
+  }, [courses, searchQuery, selectedLab]);
 
   return (
     <div className="bg-[#fcfcfd] text-zinc-900 pb-24 space-y-20 selection:bg-black selection:text-white">

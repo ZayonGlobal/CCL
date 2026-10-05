@@ -24,7 +24,7 @@ export const CoursePlayerView: React.FC = () => {
     selectedLessonId,
     setSelectedLessonId,
     setCurrentView,
-    toggleLessonComplete,
+    toggleLessonComplete, commentsFor, saveActivity, dataRecords,
   } = useApp();
 
   const course = courses.find((c) => c.id === selectedCourseId) || courses[0];
@@ -33,20 +33,7 @@ export const CoursePlayerView: React.FC = () => {
 
   const currentLesson: Lesson =
     allLessons.find((l) => l.id === selectedLessonId) ||
-    allLessons[0] || {
-      id: 'default',
-      moduleId: 'mod_1',
-      courseId: course.id,
-      title: 'Introduction to Creative AI Stewardship',
-      description: 'Understanding the theological and operational foundations of generative intelligence.',
-      youtubeVideoId: 'kCc8FmEb1nY',
-      durationMinutes: 20,
-      transcript: 'Welcome to this masterclass lesson. We examine the intersection of craft, calling, and technology...',
-      notes: 'Key reminder: Stewardship means using tools with moral clarity and excellence.',
-      resources: [],
-      order: 1,
-      completed: false,
-    };
+    allLessons[0]!;
 
   const currentLessonIndex = allLessons.findIndex((l) => l.id === currentLesson.id);
   const prevLesson = currentLessonIndex > 0 ? allLessons[currentLessonIndex - 1] : null;
@@ -54,13 +41,12 @@ export const CoursePlayerView: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'notes' | 'resources' | 'transcript' | 'assignment' | 'discussion'>('notes');
   const [copiedResId, setCopiedResId] = useState<string | null>(null);
-  const [assignmentSubmitted, setAssignmentSubmitted] = useState(false);
+  const assignmentSubmitted = dataRecords.some(r => r.kind === 'assignment' && r.target_id === currentLesson.id);
+  const [saving, setSaving] = useState(false);
+  const [assignmentUrl, setAssignmentUrl] = useState('');
   const [assignmentNotes, setAssignmentNotes] = useState('');
   const [commentInput, setCommentInput] = useState('');
-  const [comments, setComments] = useState([
-    { id: '1', user: 'Emmanuel A.', time: '2 hours ago', text: 'The aspect ratio formula for sermon carousel slides completely revolutionized our workflow.' },
-    { id: '2', user: 'Sister Bukola', time: '1 day ago', text: 'Remember to verify scripture translations directly against your church Bible translation standard.' },
-  ]);
+  const comments = commentsFor('lesson_comment', currentLesson.id);
 
   const handleCopy = (id: string, text?: string) => {
     if (text) {
@@ -267,9 +253,10 @@ export const CoursePlayerView: React.FC = () => {
                   </div>
                 ) : (
                   <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      setAssignmentSubmitted(true);
+                    onSubmit={async (e) => {
+                      e.preventDefault(); if (saving) return; setSaving(true);
+                      await saveActivity('assignment', { url: assignmentUrl, notes: assignmentNotes, courseId: course.id }, currentLesson.id);
+                      setSaving(false);
                     }}
                     className="space-y-3"
                   >
@@ -279,6 +266,7 @@ export const CoursePlayerView: React.FC = () => {
                         type="url"
                         required
                         placeholder="https://figma.com/@..."
+                        value={assignmentUrl} onChange={e => setAssignmentUrl(e.target.value)}
                         className="w-full rounded-xl border border-gray-200 bg-white p-2.5 text-xs text-zinc-900 focus:outline-none focus:border-black"
                       />
                     </div>
@@ -293,7 +281,7 @@ export const CoursePlayerView: React.FC = () => {
                       />
                     </div>
                     <button
-                      type="submit"
+                      type="submit" disabled={saving}
                       className="rounded-full bg-black hover:bg-zinc-800 text-white px-6 py-2.5 text-xs font-semibold transition-colors shadow-2xs"
                     >
                       Submit Milestone Project
@@ -306,19 +294,11 @@ export const CoursePlayerView: React.FC = () => {
             {activeTab === 'discussion' && (
               <div className="space-y-4 text-xs">
                 <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (!commentInput.trim()) return;
-                    setComments((prev) => [
-                      {
-                        id: `c_${Date.now()}`,
-                        user: 'You',
-                        time: 'Just now',
-                        text: commentInput,
-                      },
-                      ...prev,
-                    ]);
-                    setCommentInput('');
+                  onSubmit={async (e) => {
+                    e.preventDefault(); if (!commentInput.trim() || saving) return;
+                    setSaving(true);
+                    const saved = await saveActivity('lesson_comment', { text: commentInput.trim() }, currentLesson.id);
+                    setSaving(false); if (saved) setCommentInput('');
                   }}
                   className="space-y-2"
                 >
@@ -331,7 +311,7 @@ export const CoursePlayerView: React.FC = () => {
                   />
                   <div className="flex justify-end">
                     <button
-                      type="submit"
+                      type="submit" disabled={saving}
                       className="rounded-full bg-black hover:bg-zinc-800 text-white px-5 py-2 text-xs font-semibold transition-colors shadow-2xs"
                     >
                       Post Question
