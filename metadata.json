@@ -1,0 +1,6 @@
+{
+  "name": "Christian Creator Lab (CCL)",
+  "description": "Learning, community, and creator ecosystem equipping Christians to use AI and digital tools for creativity, ministry, business, and Kingdom impact.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

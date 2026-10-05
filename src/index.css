@@ -1,0 +1,232 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-display: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .font-serif-ccl {
+    font-family: var(--font-serif);
+    letter-spacing: -0.015em;
+  }
+}
+
+/* Custom crisp scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* ==========================================================================
+   HIGH-CONTRAST DARK MODE ENGINE FOR NIGHT-TIME CREATORS
+   Reduces blue light glare, eliminates bright white retina burns,
+   and ensures crisp, razor-sharp card boundaries (WCAG AAA contrast).
+   ========================================================================== */
+
+/* 1. Base Canvas & Shell Backgrounds */
+.dark body,
+.dark .bg-\[\#fcfcfd\],
+.dark .bg-\[\#f7f8fa\],
+.dark .bg-\[\#fcfcfc\] {
+  background-color: #090a0f !important;
+  color: #f8fafc !important;
+}
+
+/* 2. Elevated Cards & Containers */
+.dark .bg-white {
+  background-color: #12141c !important;
+  color: #f8fafc !important;
+}
+
+/* Maintain crisp white CTA buttons inside dark banners */
+.dark .bg-zinc-950 .bg-white,
+.dark .bg-black .bg-white,
+.dark .bg-zinc-900 .bg-white {
+  background-color: #ffffff !important;
+  color: #090a0f !important;
+}
+
+.dark .bg-zinc-950 .bg-white:hover,
+.dark .bg-black .bg-white:hover,
+.dark .bg-zinc-900 .bg-white:hover {
+  background-color: #f1f5f9 !important;
+  color: #090a0f !important;
+}
+
+/* 3. Wells, Filter bars, Chips, and Secondary Badges */
+.dark .bg-zinc-50,
+.dark .bg-gray-50,
+.dark .bg-zinc-100,
+.dark .bg-slate-50,
+.dark .bg-\[\#f9fafb\],
+.dark .bg-\[\#eeeff2\],
+.dark .bg-\[\#f8f9fa\] {
+  background-color: #171a25 !important;
+  color: #f8fafc !important;
+}
+
+/* 4. Borders - High Contrast Definition */
+.dark .border-gray-200,
+.dark .border-gray-200\/80,
+.dark .border-gray-200\/70,
+.dark .border-gray-200\/90,
+.dark .border-gray-100,
+.dark .border-zinc-200,
+.dark .border-zinc-200\/70,
+.dark .border-zinc-200\/80,
+.dark .border-zinc-200\/90,
+.dark .border-zinc-100,
+.dark .border-slate-200,
+.dark .border-\[\#e2e0d8\] {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* 5. Typography Hierarchy & Contrast */
+.dark .text-zinc-950,
+.dark .text-zinc-900,
+.dark .text-black,
+.dark .text-slate-900,
+.dark .text-slate-950,
+.dark .text-\[\#111113\] {
+  color: #f8fafc !important;
+}
+
+.dark .text-zinc-800,
+.dark .text-zinc-700,
+.dark .text-slate-700,
+.dark .text-slate-800 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-zinc-600,
+.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-zinc-500,
+.dark .text-slate-500,
+.dark .text-zinc-400 {
+  color: #94a3b8 !important;
+}
+
+/* 6. Primary Action Buttons - High Contrast Inversion */
+.dark button.bg-black,
+.dark a.bg-black {
+  background-color: #f8fafc !important;
+  color: #090a0f !important;
+}
+
+.dark button.bg-black:hover,
+.dark a.bg-black:hover {
+  background-color: #e2e8f0 !important;
+  color: #090a0f !important;
+}
+
+.dark button.bg-black span,
+.dark button.bg-black svg,
+.dark a.bg-black span,
+.dark a.bg-black svg {
+  color: #090a0f !important;
+}
+
+/* 7. Secondary / Outline Buttons */
+.dark button.border-gray-200,
+.dark a.border-gray-200 {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #f8fafc !important;
+}
+
+.dark button.border-gray-200:hover,
+.dark a.border-gray-200:hover {
+  background-color: #1e2230 !important;
+}
+
+/* 8. Inputs, Search fields, & Textareas */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #161923 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #f8fafc !important;
+  outline: none !important;
+}
+
+/* 9. Hero Card in Dashboard (reduce glare on crème gradients) */
+.dark .from-\[\#ebe9e3\],
+.dark .via-\[\#f1f0ec\],
+.dark .to-\[\#e4e3dd\] {
+  --tw-gradient-from: #151822 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: #11131a var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #171b26 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+
+.dark .from-\[\#ebe9e3\]\/60 {
+  --tw-gradient-from: rgba(21, 24, 34, 0.8) var(--tw-gradient-from-position) !important;
+}
+
+/* 10. Images Night Vision Protection */
+.dark img {
+  filter: brightness(0.92) contrast(1.04);
+}
+
+/* 11. Modal Overlays & Drawers */
+.dark .bg-black\/60,
+.dark .bg-black\/70,
+.dark .bg-black\/50 {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* 12. Badges & Progress Tracks */
+.dark .bg-zinc-100 {
+  background-color: #1a1e2b !important;
+}
+
+.dark .bg-zinc-200 {
+  background-color: #24293a !important;
+}
