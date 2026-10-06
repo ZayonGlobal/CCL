@@ -86,6 +86,13 @@ test('signup uses entered identity and shows email confirmation without a fake l
   expect(request.postDataJSON().data.first_name).toBe('Actual');
   expect(request.postDataJSON().data.role).toBeUndefined();
   await expect(page.getByRole('status')).toContainText('Check your email');
+  await expect(page.getByRole('heading', { name: 'Account created successfully' })).toBeVisible();
+  await expect(page.getByLabel('First name', { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel('Password', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Continue to sign in', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Welcome back', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Email address', { exact: true })).toHaveValue('actual@example.com');
+  await expect(page.getByLabel('Password', { exact: true })).toHaveValue('');
   await expect(page.getByRole('heading',{name:'Welcome, Real.'})).toHaveCount(0);
   await expect(page.getByText('Demo Experience Role')).toHaveCount(0);
 });

@@ -16,9 +16,10 @@ export const AuthModal: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [registrationComplete, setRegistrationComplete] = useState(false);
   const dialog = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setError(''); setSuccess(''); setPassword(''); setConfirmPassword(''); setForgot(false); }, [authModalMode, isAuthModalOpen]);
+  useEffect(() => { setRegistrationComplete(false); setError(''); setSuccess(''); setPassword(''); setConfirmPassword(''); setForgot(false); }, [authModalMode, isAuthModalOpen]);
   useEffect(() => {
     if (!isAuthModalOpen) return;
     const previous = document.activeElement as HTMLElement | null;
@@ -38,6 +39,8 @@ export const AuthModal: React.FC = () => {
     return () => { document.removeEventListener('keydown', keydown); previous?.focus(); };
   }, [isAuthModalOpen, busy, setIsAuthModalOpen]);
 
+  useEffect(() => { if (registrationComplete) dialog.current?.querySelector<HTMLElement>('#auth-title')?.focus(); }, [registrationComplete]);
+
   if (!isAuthModalOpen) return null;
   const registering = authModalMode === 'register' && !isPasswordRecovery && !forgot;
   const label = isPasswordRecovery ? 'Set a new password' : forgot ? 'Reset your password' : registering ? 'Create your CCL account' : 'Welcome back';
@@ -54,7 +57,7 @@ export const AuthModal: React.FC = () => {
       } else if (registering) {
         if (password !== confirmPassword) throw new Error('Your passwords do not match.');
         const signedIn = await register(email, password, firstName, lastName);
-        if (!signedIn) setSuccess('Check your email to confirm your account, then sign in to continue.');
+        if (!signedIn) { setPassword(''); setConfirmPassword(''); setRegistrationComplete(true); }
       } else { await login(email, password); }
     } catch (error) { setError(errorMessage(error)); }
     finally { setBusy(false); }
@@ -65,6 +68,16 @@ export const AuthModal: React.FC = () => {
       <div ref={dialog} role="dialog" aria-modal="true" aria-labelledby="auth-title" className="w-full max-w-md max-h-[90vh] overflow-auto rounded-3xl bg-white p-7 sm:p-8 shadow-2xl relative text-zinc-900" onClick={e => e.stopPropagation()}>
         <button aria-label="Close sign in" disabled={busy} onClick={() => setIsAuthModalOpen(false)} className="absolute top-5 right-5 p-1.5 text-zinc-500"><X className="h-5 w-5" /></button>
         <BrandLogo className="w-48 mb-6" />
+        {registrationComplete ? <div className="text-center">
+          <CheckCircle2 aria-hidden="true" className="h-12 w-12 text-emerald-600 mx-auto mb-4" />
+          <h2 id="auth-title" tabIndex={-1} className="font-serif-ccl text-3xl font-bold mb-3 focus:outline-none">Account created successfully</h2>
+          <div role="status" className="text-sm text-zinc-600 leading-relaxed">
+            <p>We’ve sent a verification email to <strong className="break-all">{email.trim()}</strong>.</p>
+            <p className="mt-3">Check your email and click the verification link to activate your account. If you don’t see it, check your Spam or Junk folder.</p>
+          </div>
+          <button className="w-full mt-6 rounded-full bg-black py-3 text-sm font-semibold text-white" onClick={() => { setRegistrationComplete(false); setAuthModalMode('login'); }}>Continue to sign in</button>
+          <button className="mt-4 text-sm underline underline-offset-4" onClick={() => setIsAuthModalOpen(false)}>Close</button>
+        </div> : <>
         <h2 id="auth-title" className="font-serif-ccl text-2xl font-bold mb-2">{label}</h2>
         <p className="text-sm text-zinc-500 mb-5">Create with excellence. Build with purpose.</p>
         {!isBackendConfigured && <p role="status" className="text-sm rounded-xl bg-zinc-50 p-3 mb-4">Registration will open soon. Please check back later.</p>}
@@ -85,7 +98,10 @@ export const AuthModal: React.FC = () => {
         {!isPasswordRecovery && <div className="mt-5 text-center space-y-3 text-xs">
           {forgot ? <button onClick={() => { setForgot(false); setError(''); setSuccess(''); }}>Back to sign in</button> : <>
             {!registering && <button onClick={() => { setForgot(true); setError(''); setSuccess(''); }}>Forgot your password?</button>}
-            <div><button onClick={() => setAuthModalMode(registering ? 'login' : 'register')}>{registering ? 'Already have an account? Sign in' : 'New to CCL? Create an account'}</button></div>
+            <div className="border-t border-gray-200 pt-4">
+              <p className="text-sm text-zinc-500 mb-2">{registering ? 'Already have an account?' : 'New to CCL?'}</p>
+              <button disabled={busy} aria-label={registering ? 'Already have an account? Sign in' : 'New to CCL? Create an account'} className="w-full rounded-full border-2 border-zinc-900 py-3 text-sm font-bold text-zinc-900 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50" onClick={() => setAuthModalMode(registering ? 'login' : 'register')}>{registering ? 'Sign in' : 'Create an account'}</button>
+            </div>
           </>}
         </div>}
         {import.meta.env.VITE_GOOGLE_AUTH_ENABLED === 'true' && !forgot && !isPasswordRecovery && <button disabled={busy || !isBackendConfigured} className="w-full rounded-full border mt-5 py-3 text-sm" onClick={async () => {
@@ -93,6 +109,7 @@ export const AuthModal: React.FC = () => {
           try { const { error } = await backend().auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); if (error) throw error; }
           catch (error) { setError(errorMessage(error)); setBusy(false); }
         }}>Continue with Google</button>}
+        </>}
       </div>
     </div>
   );
