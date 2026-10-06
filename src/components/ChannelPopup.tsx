@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Gift, X } from 'lucide-react';
+import { ArrowUpRight, X } from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
 import { useApp } from '../context/AppContext';
 export const WHATSAPP_CHANNEL = 'https://whatsapp.com/channel/0029VbB8jEWEawdyeLVjfb3i';
 const storageKey = 'ccl-channel-popup-dismissed';
@@ -8,7 +9,7 @@ export const ChannelPopup: React.FC = () => {
   const [open,setOpen]=useState(false); const [dismissed,setDismissed]=useState(false);
   const [busy,setBusy]=useState(false); const [error,setError]=useState(''); const [saved,setSaved]=useState(false);
   const [name,setName]=useState(''); const [email,setEmail]=useState(''); const [phone,setPhone]=useState('');
-  const [website,setWebsite]=useState(''); const [consent,setConsent]=useState(false);
+  const [website,setWebsite]=useState('');
   const box=useRef<HTMLDivElement>(null);
   const blocked=isAuthModalOpen || isOnboardingOpen || isSearchOpen || isAssistantOpen;
   useEffect(()=>{try { setDismissed(sessionStorage.getItem(storageKey)==='1'); } catch {}},[]);
@@ -32,27 +33,27 @@ export const ChannelPopup: React.FC = () => {
   },[open,blocked,busy]);
   if(!open || blocked)return null;
   const submit=async(e:React.FormEvent)=>{e.preventDefault();if(busy)return;setBusy(true);setError('');try{
-    const response=await fetch('/api/channel-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,phone,website,consent})});
+    const response=await fetch('/api/channel-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,phone,website,welcomeRequested:true})});
     const result=await response.json();if(!response.ok || !result.saved)throw new Error(result.error || 'Could not save. Please try again.');
     setSaved(true);setDismissed(true);try{sessionStorage.setItem(storageKey,'1');}catch{}
     window.location.assign(WHATSAPP_CHANNEL);
   }catch(e){setError(e instanceof Error?e.message:'Please try again.');}finally{setBusy(false);}};
-  const input='w-full rounded-xl border border-white/20 px-3.5 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-400';
+  const input='w-full rounded-xl border border-zinc-200 px-3.5 py-3 text-sm outline-none focus:ring-2 focus:ring-black';
   return <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={close}>
-    <div ref={box} role="dialog" aria-modal="true" aria-labelledby="channel-title" className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border border-white/15 p-6 sm:p-9 shadow-2xl" style={{background:'#10161c',color:'#fff'}} onClick={e=>e.stopPropagation()}>
-      <button aria-label="Close WhatsApp invitation" disabled={busy} onClick={close} className="absolute right-4 top-4 rounded-full border border-white/15 p-2"><X className="h-5 w-5"/></button>
-      <span className="inline-flex items-center gap-2 rounded-full bg-amber-400/15 px-3 py-1 text-xs font-bold text-amber-400"><Gift className="h-3.5 w-3.5"/>FREE ACCESS</span>
-      <h2 id="channel-title" className="mt-5 text-2xl font-extrabold leading-tight">WAIT! DON’T LEAVE EMPTY-HANDED!</h2>
-      <p className="mt-3 text-sm leading-relaxed text-zinc-400">Join the Christian Creator Lab WhatsApp channel for practical AI tips, creative resources, and learning updates. It’s free.</p>
+    <div ref={box} role="dialog" aria-modal="true" aria-labelledby="channel-title" className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border border-zinc-200 p-6 sm:p-9 shadow-2xl" style={{background:'#fff',color:'#111'}} onClick={e=>e.stopPropagation()}>
+      <button aria-label="Close WhatsApp invitation" disabled={busy} onClick={close} className="absolute right-4 top-4 rounded-full border border-zinc-200 p-2"><X className="h-5 w-5"/></button>
+      <BrandLogo className="w-40 pr-2" />
+      <span className="mt-7 inline-block text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-500">Faith. Creativity. Community.</span>
+      <h2 id="channel-title" className="mt-3 text-3xl font-semibold tracking-tight leading-tight">Create with purpose.<br/>Grow with CCL.</h2>
+      <p className="mt-3 text-sm leading-relaxed text-zinc-500">Join the Christian Creator Lab WhatsApp channel for practical AI tips, creative resources, and learning updates. It’s free.</p>
       {saved ? <p role="status" className="mt-6">Your details are saved. Opening WhatsApp… <a href={WHATSAPP_CHANNEL} className="underline">Tap here if it doesn’t open.</a></p> : <form onSubmit={submit} className="mt-6 space-y-4">
-        {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
-        <label className="block text-sm font-semibold">Name<input required maxLength={150} autoComplete="name" placeholder="Your full name" className={input+' mt-2'} style={{background:'#10161c',color:'#fff'}} value={name} onChange={e=>setName(e.target.value)}/></label>
-        <label className="block text-sm font-semibold">Email<input required type="email" maxLength={254} autoComplete="email" placeholder="you@example.com" className={input+' mt-2'} style={{background:'#10161c',color:'#fff'}} value={email} onChange={e=>setEmail(e.target.value)}/></label>
-        <label className="block text-sm font-semibold">WhatsApp number <span className="font-normal text-zinc-400">(optional)</span><input type="tel" maxLength={30} autoComplete="tel" placeholder="+234…" className={input+' mt-2'} style={{background:'#10161c',color:'#fff'}} value={phone} onChange={e=>setPhone(e.target.value)}/></label>
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+        <label className="block text-sm font-semibold">Name<input required maxLength={150} autoComplete="name" placeholder="Your full name" className={input+' mt-2'} style={{background:'#fff',color:'#111'}} value={name} onChange={e=>setName(e.target.value)}/></label>
+        <label className="block text-sm font-semibold">Email<input required type="email" maxLength={254} autoComplete="email" placeholder="you@example.com" className={input+' mt-2'} style={{background:'#fff',color:'#111'}} value={email} onChange={e=>setEmail(e.target.value)}/></label>
+        <label className="block text-sm font-semibold">WhatsApp number<input type="tel" maxLength={30} autoComplete="tel" placeholder="+234…" className={input+' mt-2'} style={{background:'#fff',color:'#111'}} value={phone} onChange={e=>setPhone(e.target.value)}/></label>
         <div className="hidden" aria-hidden="true"><input tabIndex={-1} autoComplete="off" value={website} onChange={e=>setWebsite(e.target.value)} aria-label="Website"/></div>
-        <label className="flex items-start gap-2 text-xs leading-relaxed text-zinc-400"><input type="checkbox" required checked={consent} onChange={e=>setConsent(e.target.checked)} className="mt-1"/>I agree to receive a CCL welcome email with the channel link. My details will be saved by CCL.</label>
-        <button disabled={busy} className="w-full rounded-full py-3.5 text-sm font-bold disabled:opacity-50" style={{background:'#00ce7c',color:'#07130d'}}>{busy?'Saving…':'Get free access'}</button>
-        <p className="text-xs text-center text-zinc-400">No payment. You’ll go straight to the channel after this.</p>
+        <button disabled={busy} className="w-full rounded-full py-3.5 text-sm font-bold disabled:opacity-50" style={{background:'#111',color:'#fff'}}>{busy?'Saving…':<span className="inline-flex items-center gap-2">Join the free community<ArrowUpRight className="h-4 w-4"/></span>}</button>
+        <p className="text-xs text-center text-zinc-500">Submit to save your details and receive a welcome email with the channel link. You’ll continue to WhatsApp.</p>
       </form>}
     </div>
   </div>;

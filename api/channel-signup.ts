@@ -13,10 +13,10 @@ export default async function handler(req: IncomingMessage & { body?: any }, res
     const name = String(body.name || '').trim(); const email = String(body.email || '').trim().toLowerCase();
     const phone = String(body.phone || '').trim();
     if (body.website) return reply(400,{error:'Unable to submit this form.'});
-    if (!name || name.length > 150 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || phone.length > 30 || (phone && !/^[+\d\s()-]{7,30}$/.test(phone)) || body.consent !== true) return reply(400,{error:'Enter your name and a valid email, and agree to receive the welcome email.'});
+    if (!name || name.length > 150 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || phone.length > 30 || (phone && !/^[+\d\s()-]{7,30}$/.test(phone)) || (body.welcomeRequested !== true && body.consent !== true)) return reply(400,{error:'Enter your name and a valid email, and submit to request the welcome email.'});
     const url = process.env.VITE_SUPABASE_URL; const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     if (!url || !key) return reply(503,{error:'Signup is temporarily unavailable. Please try again.'});
-    const saved = await fetch(`${url}/rest/v1/rpc/ccl_submit_inquiry`, {method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({p_name:name,p_email:email,p_subject:'WhatsApp channel signup',p_message:JSON.stringify({phone,consent:'CCL welcome email and WhatsApp channel link',source:'channel-popup',submittedAt:new Date().toISOString()})}),signal:AbortSignal.timeout(10000)});
+    const saved = await fetch(`${url}/rest/v1/rpc/ccl_submit_inquiry`, {method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({p_name:name,p_email:email,p_subject:'WhatsApp channel signup',p_message:JSON.stringify({phone,consent:body.welcomeRequested === true ? 'Welcome email requested by submitting the channel signup form' : 'CCL welcome email and WhatsApp channel link',source:'channel-popup',submittedAt:new Date().toISOString()})}),signal:AbortSignal.timeout(10000)});
     if (!saved.ok) return reply(saved.status===400 || saved.status===429 ? 429 : 503,{error:'Could not save your signup. If you recently submitted, please wait before trying again.'});
     let emailSent = false;
     if (process.env.BREVO_API_KEY) {
