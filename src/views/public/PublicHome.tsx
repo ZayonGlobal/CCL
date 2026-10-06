@@ -260,15 +260,15 @@ export const PublicHome: React.FC = () => {
           {LABS.slice(0, 6).map((lab) => (
             <div
               key={lab.id}
-              className="rounded-2xl border border-gray-200/80 bg-white p-6 flex flex-col justify-between hover:shadow-md transition-all"
+              className="relative isolate overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 flex flex-col justify-between hover:shadow-md transition-all"
             >
               <div>
                 <div className="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
                   <span>Level: {lab.level}</span>
                   {isLabOpen(lab.id) && <span>{lab.courseCount} Courses</span>}
-                </div>
+            </div>
                 <h3 className="font-serif-ccl text-lg font-bold text-zinc-950">{lab.name}</h3>
-                <div className="mt-2"><LabAvailability id={lab.id} /></div>
+                
                 <p className="text-xs text-zinc-600 mt-2 leading-relaxed">{lab.shortDesc}</p>
 
                 <div className="mt-4 flex flex-wrap gap-1">
@@ -296,6 +296,7 @@ export const PublicHome: React.FC = () => {
                   <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
+              <LabAvailability id={lab.id} name={lab.name} />
             </div>
           ))}
         </div>

@@ -188,7 +188,7 @@ export const PublicLabs: React.FC = () => {
           {filteredLabs.map((lab) => (
             <div
               key={lab.id}
-              className="rounded-3xl border border-gray-200/80 bg-white p-7 sm:p-8 flex flex-col justify-between hover:shadow-md transition-shadow shadow-[0_2px_14px_rgba(0,0,0,0.03)]"
+              className="relative isolate overflow-hidden rounded-3xl border border-gray-200/80 bg-white p-7 sm:p-8 flex flex-col justify-between hover:shadow-md transition-shadow shadow-[0_2px_14px_rgba(0,0,0,0.03)]"
             >
               <div>
                 <div className="flex items-center justify-between text-xs text-zinc-400 font-mono mb-2">
@@ -197,14 +197,14 @@ export const PublicLabs: React.FC = () => {
                 </div>
 
                 <h3 className="font-serif-ccl text-2xl font-bold text-zinc-950 mt-1">{lab.name}</h3>
-                <div className="mt-2"><LabAvailability id={lab.id} /></div>
+                
                 <p className="text-xs sm:text-sm text-zinc-600 mt-2 leading-relaxed">{lab.description}</p>
 
                 {/* Topics */}
                 <div className="mt-5">
                   <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-bold mb-2">
                     Core Topics Covered
-                  </div>
+            </div>
                   <div className="flex flex-wrap gap-1.5">
                     {lab.topics.map((t) => (
                       <span
@@ -252,6 +252,7 @@ export const PublicLabs: React.FC = () => {
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </div>
+              <LabAvailability id={lab.id} name={lab.name} />
             </div>
           ))}
         </div>

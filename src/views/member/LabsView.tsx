@@ -86,7 +86,7 @@ export const LabsView: React.FC = () => {
           return (
             <div
               key={lab.id}
-              className="rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-8 shadow-[0_2px_14px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow flex flex-col justify-between"
+              className="relative isolate overflow-hidden rounded-3xl border border-gray-200/80 bg-white p-6 sm:p-8 shadow-[0_2px_14px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow flex flex-col justify-between"
             >
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -101,7 +101,7 @@ export const LabsView: React.FC = () => {
 
                 <div>
                   <h3 className="font-serif-ccl text-2xl font-bold text-zinc-950">{lab.name}</h3>
-                <div className="mt-2"><LabAvailability id={lab.id} /></div>
+                
                   <p className="text-xs sm:text-sm text-zinc-600 mt-2 leading-relaxed">
                     {lab.description}
                   </p>
@@ -160,6 +160,7 @@ export const LabsView: React.FC = () => {
                   <span>Prompt Kits</span>
                 </button>
               </div>
+              <LabAvailability id={lab.id} name={lab.name} />
             </div>
           );
         })}
