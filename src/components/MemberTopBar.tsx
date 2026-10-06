@@ -1,3 +1,4 @@
+import { BrandLogo } from './BrandLogo';
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import {
@@ -33,8 +34,9 @@ export const MemberTopBar: React.FC = () => {
 
   return (
     <header className="w-full flex items-center justify-between gap-4 py-4 px-6 sm:px-8 border-b border-gray-200/70 bg-[#f7f8fa]">
-      {/* Search Input Box - Matching Screenshot */}
-      <div className="flex-1 max-w-xl">
+      <button className="lg:hidden shrink-0" aria-label="CCL dashboard" onClick={() => setCurrentView('dashboard')}><BrandLogo className="w-24" /></button>
+      {/* Search Input Box */}
+      <div className="hidden sm:block flex-1 min-w-0 max-w-xl">
         <button
           onClick={() => setIsSearchOpen(true)}
           className="w-full flex items-center gap-3 rounded-xl bg-[#eeeff2] hover:bg-[#e7e9ed] px-4 py-2.5 text-xs text-zinc-500 transition-colors text-left"
@@ -47,6 +49,7 @@ export const MemberTopBar: React.FC = () => {
         </button>
       </div>
 
+      <button className="sm:hidden p-2" aria-label="Search CCL" onClick={() => setIsSearchOpen(true)}><Search className="h-4 w-4" /></button>
       {/* Right Controls: Bell Notification & User Profile */}
       <div className="flex items-center gap-3 sm:gap-5">
         {/* Night Mode Theme Toggle */}

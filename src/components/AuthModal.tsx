@@ -1,3 +1,4 @@
+import { BrandLogo } from './BrandLogo';
 import React, { useEffect, useRef, useState } from 'react';
 import { X, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -63,7 +64,7 @@ export const AuthModal: React.FC = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={() => !busy && setIsAuthModalOpen(false)}>
       <div ref={dialog} role="dialog" aria-modal="true" aria-labelledby="auth-title" className="w-full max-w-md max-h-[90vh] overflow-auto rounded-3xl bg-white p-7 sm:p-8 shadow-2xl relative text-zinc-900" onClick={e => e.stopPropagation()}>
         <button aria-label="Close sign in" disabled={busy} onClick={() => setIsAuthModalOpen(false)} className="absolute top-5 right-5 p-1.5 text-zinc-500"><X className="h-5 w-5" /></button>
-        <div className="font-serif-ccl text-3xl font-bold mb-6">CCL</div>
+        <BrandLogo className="w-48 mb-6" />
         <h2 id="auth-title" className="font-serif-ccl text-2xl font-bold mb-2">{label}</h2>
         <p className="text-sm text-zinc-500 mb-5">Create with excellence. Build with purpose.</p>
         {!isBackendConfigured && <p role="status" className="text-sm rounded-xl bg-zinc-50 p-3 mb-4">Registration will open soon. Please check back later.</p>}

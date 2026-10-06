@@ -1,3 +1,4 @@
+import { BrandLogo } from './BrandLogo';
 import React from 'react';
 import { useApp, AppView } from '../context/AppContext';
 import { ThemeToggle } from './ThemeToggle';
@@ -16,19 +17,7 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand & Purpose */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="font-serif-ccl text-3xl font-bold tracking-tight text-zinc-950 leading-none">
-                CCL
-              </span>
-              <div className="flex flex-col">
-                <span className="text-[9px] font-sans font-semibold tracking-[0.25em] text-zinc-800 uppercase leading-tight">
-                  CHRISTIAN
-                </span>
-                <span className="text-[9px] font-sans font-semibold tracking-[0.25em] text-zinc-800 uppercase leading-tight">
-                  CREATOR LAB
-                </span>
-              </div>
-            </div>
+            <BrandLogo className="w-52" />
             <p className="text-xs text-zinc-600 max-w-sm leading-relaxed">
               Equipping Christians to use AI and digital tools for creativity, ministry, business,
               career development, and Kingdom impact. Create with purpose. Build for eternity.

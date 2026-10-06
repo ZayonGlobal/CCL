@@ -1,3 +1,4 @@
+import { BrandLogo } from './BrandLogo';
 import React from 'react';
 import { useApp, AppView } from '../context/AppContext';
 import {
@@ -48,14 +49,9 @@ export const AppSidebar: React.FC = () => {
     <aside className="hidden lg:flex w-64 flex-col justify-between bg-[#0e0f12] text-white p-6 select-none shrink-0 min-h-screen border-r border-[#1a1c22]">
       <div className="space-y-10">
         {/* Top Branding - Matching Screenshot */}
-        <div className="space-y-1.5 cursor-pointer" onClick={() => setCurrentView('dashboard')}>
-          <div className="font-serif-ccl text-3xl font-bold tracking-tight text-white leading-none">
-            CCL
-          </div>
-          <div className="text-[9px] font-sans font-semibold tracking-[0.25em] text-zinc-400 uppercase">
-            CHRISTIAN CREATOR LAB
-          </div>
-        </div>
+        <button aria-label="CCL dashboard" className="rounded-lg bg-white p-3" onClick={() => setCurrentView('dashboard')}>
+          <BrandLogo className="w-44" />
+        </button>
 
         {/* Primary Navigation - Matching 5 items in image */}
         <nav className="space-y-2">

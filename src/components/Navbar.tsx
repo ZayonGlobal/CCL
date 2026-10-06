@@ -1,3 +1,4 @@
+import { BrandLogo } from './BrandLogo';
 import React, { useState } from 'react';
 import { useApp, AppView } from '../context/AppContext';
 import {
@@ -54,17 +55,7 @@ export const Navbar: React.FC = () => {
           onClick={() => handleNav('public_home')}
           className="flex items-center gap-3 text-left focus:outline-none group"
         >
-          <span className="font-serif-ccl text-3xl font-bold tracking-tight text-black leading-none">
-            CCL
-          </span>
-          <div className="flex flex-col">
-            <span className="text-[9px] font-sans font-semibold tracking-[0.25em] text-zinc-800 uppercase leading-tight">
-              CHRISTIAN
-            </span>
-            <span className="text-[9px] font-sans font-semibold tracking-[0.25em] text-zinc-800 uppercase leading-tight">
-              CREATOR LAB
-            </span>
-          </div>
+          <BrandLogo className="w-32 sm:w-40" />
         </button>
 
         {/* Center Nav Links - Matching Screenshot */}

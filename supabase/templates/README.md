@@ -15,4 +15,4 @@ Keep every `{{ .ConfirmationURL }}` placeholder intact. Supabase generates the c
 
 Preview each email in the dashboard. Then test a new registration and a password reset through the live CCL site. Never paste actual confirmation links into public screenshots or commit them. Existing delivered emails do not change when a template is updated.
 
-These use inline styles, system fonts, presentation tables, and a text wordmark without external images. They change branding, not email delivery or sender authentication.
+These use inline styles, system fonts, presentation tables, and the official CCL logo hosted at https://ccl-delta.vercel.app/brand/ccl-logo.png. They change branding, not email delivery or sender authentication.

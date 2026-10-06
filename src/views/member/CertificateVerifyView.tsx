@@ -1,3 +1,4 @@
+import { BrandLogo } from '../../components/BrandLogo';
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 
@@ -33,10 +34,8 @@ export const CertificateVerifyView: React.FC = () => {
       <div className="rounded-3xl border border-gray-200/90 bg-white p-8 sm:p-12 shadow-xl relative overflow-hidden">
         {/* Top Seal & Verification Status */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6">
-          <div className="flex items-center gap-3">
-            <div className="font-serif-ccl text-3xl font-bold tracking-tight text-black leading-none">
-              CCL
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <BrandLogo className="w-36" />
             <div>
               <span className="font-serif-ccl text-base font-bold text-zinc-950 block">
                 Christian Creator Lab

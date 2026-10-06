@@ -1,3 +1,4 @@
+import { BrandLogo } from './BrandLogo';
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Sparkles, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -59,9 +60,7 @@ export const OnboardingModal: React.FC = () => {
         {/* Progress indicator */}
         <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="font-serif-ccl text-2xl font-bold tracking-tight text-black">
-              CCL
-            </div>
+            <BrandLogo className="w-24 sm:w-32" />
             <div>
               <h2 className="font-serif-ccl text-base font-bold text-zinc-950">
                 Personalize Your Creator Lab
