@@ -7,6 +7,7 @@ const storageKey = 'ccl-channel-popup-dismissed';
 export const ChannelPopup: React.FC = () => {
   const { currentView, isAuthModalOpen, isOnboardingOpen, isSearchOpen, isAssistantOpen } = useApp();
   const [open,setOpen]=useState(false); const [dismissed,setDismissed]=useState(false);
+  const [emailNotice,setEmailNotice]=useState('');
   const [busy,setBusy]=useState(false); const [error,setError]=useState(''); const [saved,setSaved]=useState(false);
   const [name,setName]=useState(''); const [email,setEmail]=useState(''); const [phone,setPhone]=useState('');
   const [website,setWebsite]=useState('');
@@ -36,17 +37,18 @@ export const ChannelPopup: React.FC = () => {
     const response=await fetch('/api/channel-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,phone,website,welcomeRequested:true})});
     const result=await response.json();if(!response.ok || !result.saved)throw new Error(result.error || 'Could not save. Please try again.');
     setSaved(true);setDismissed(true);try{sessionStorage.setItem(storageKey,'1');}catch{}
-    window.location.assign(WHATSAPP_CHANNEL);
+    if (result.emailSent) window.location.assign(WHATSAPP_CHANNEL);
+    else setEmailNotice(result.emailError || 'Your details were saved, but the welcome email could not be sent.');
   }catch(e){setError(e instanceof Error?e.message:'Please try again.');}finally{setBusy(false);}};
   const input='w-full rounded-xl border border-zinc-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-black';
   return <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={close}>
     <div ref={box} role="dialog" aria-modal="true" aria-labelledby="channel-title" className="relative w-full max-w-sm max-h-[90dvh] overflow-y-auto rounded-2xl border border-zinc-200 p-5 sm:p-6 font-sans shadow-2xl" style={{background:'#fff',color:'#111'}} onClick={e=>e.stopPropagation()}>
       <button aria-label="Close WhatsApp invitation" disabled={busy} onClick={close} className="absolute right-4 top-4 rounded-full border border-zinc-200 p-2"><X className="h-5 w-5"/></button>
       <BrandLogo className="w-32 pr-2" />
-      <span className="mt-4 inline-block text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-zinc-500">A free resource for creators</span>
+      <span className="mt-4 inline-block text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-zinc-500">We have a gift for you</span>
       <h2 id="channel-title" className="mt-2 font-serif-ccl text-2xl font-bold tracking-tight leading-tight">Get the free <span className="italic font-normal">AI Bible.</span></h2>
-      <p className="mt-2 text-xs leading-relaxed text-zinc-500">Join our WhatsApp channel for AI tips and creative resources. The free AI Bible PDF is coming soon.</p>
-      {saved ? <p role="status" className="mt-6">Your details are saved. Opening WhatsApp… <a href={WHATSAPP_CHANNEL} className="underline">Tap here if it doesn’t open.</a></p> : <form onSubmit={submit} className="mt-4 space-y-3">
+      <p className="mt-2 text-xs leading-relaxed text-zinc-500">Get the free AI Bible and join our WhatsApp channel for AI tips and creative resources.</p>
+      {saved ? <p role="status" className="mt-6">{emailNotice || 'Your details are saved. Opening WhatsApp…'} <a href={WHATSAPP_CHANNEL} className="mt-3 block underline">Continue to the WhatsApp channel</a></p> : <form onSubmit={submit} className="mt-4 space-y-3">
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         <label className="block text-xs font-medium">Name<input required maxLength={150} autoComplete="name" placeholder="Your full name" className={input+' mt-1'} style={{background:'#fff',color:'#111'}} value={name} onChange={e=>setName(e.target.value)}/></label>
         <label className="block text-xs font-medium">Email<input required type="email" maxLength={254} autoComplete="email" placeholder="you@example.com" className={input+' mt-1'} style={{background:'#fff',color:'#111'}} value={email} onChange={e=>setEmail(e.target.value)}/></label>
