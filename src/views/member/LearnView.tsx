@@ -81,8 +81,8 @@ export const LearnView: React.FC = () => {
             >
               <option value="all">All 10 Labs</option>
               {LABS.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
+                <option key={l.id} value={l.id} disabled={l.id !== 'ai-foundations'}>
+                  {l.name}{l.id !== 'ai-foundations' ? ' — Coming soon' : ''}
                 </option>
               ))}
             </select>

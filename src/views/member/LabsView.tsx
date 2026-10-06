@@ -1,3 +1,4 @@
+import { LabAvailability, isLabOpen } from '../../components/LabAvailability';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LABS } from '../../data/seedData';
@@ -55,8 +56,7 @@ export const LabsView: React.FC = () => {
           Curriculum Learning Labs
         </h1>
         <p className="text-xs sm:text-sm text-zinc-600 mt-2 max-w-xl">
-          Dive deep into any of our 10 specialized practice tracks. Each lab provides project briefs,
-          curated toolchains, vetted prompt recipes, and certified mastery pathways.
+          Start with AI Foundations. Our other nine specialized learning labs are coming soon.
         </p>
       </div>
 
@@ -101,13 +101,14 @@ export const LabsView: React.FC = () => {
 
                 <div>
                   <h3 className="font-serif-ccl text-2xl font-bold text-zinc-950">{lab.name}</h3>
+                <div className="mt-2"><LabAvailability id={lab.id} /></div>
                   <p className="text-xs sm:text-sm text-zinc-600 mt-2 leading-relaxed">
                     {lab.description}
                   </p>
                 </div>
 
                 {/* Progress bar if any completed or enrolled */}
-                {labCourses.length > 0 && (
+                {isLabOpen(lab.id) && labCourses.length > 0 && (
                   <div className="pt-2">
                     <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 mb-1.5">
                       <span>Lab Progress</span>
@@ -142,16 +143,18 @@ export const LabsView: React.FC = () => {
               {/* Action Footer */}
               <div className="pt-6 border-t border-gray-100 mt-6 flex items-center justify-between gap-3">
                 <button
+                  disabled={!isLabOpen(lab.id)}
                   onClick={() => setCurrentView('learn')}
-                  className="inline-flex items-center gap-2 rounded-full bg-black hover:bg-zinc-800 text-white px-5 py-2 text-xs font-semibold shadow-xs transition-colors"
+                  className="disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-2 rounded-full bg-black hover:bg-zinc-800 text-white px-5 py-2 text-xs font-semibold shadow-xs transition-colors"
                 >
-                  <span>Explore Courses</span>
+                  <span>{isLabOpen(lab.id) ? 'Explore Courses' : 'Coming soon'}</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
 
                 <button
+                  disabled={!isLabOpen(lab.id)}
                   onClick={() => setCurrentView('prompts')}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-600 hover:text-black transition-colors"
+                  className="disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1.5 text-xs font-medium text-zinc-600 hover:text-black transition-colors"
                 >
                   <Terminal className="h-3.5 w-3.5 text-zinc-400" />
                   <span>Prompt Kits</span>

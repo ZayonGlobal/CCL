@@ -1,3 +1,4 @@
+import { LabAvailability, isLabOpen } from '../../components/LabAvailability';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LABS } from '../../data/seedData';
@@ -264,9 +265,10 @@ export const PublicHome: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
                   <span>Level: {lab.level}</span>
-                  <span>{lab.courseCount} Courses</span>
+                  {isLabOpen(lab.id) && <span>{lab.courseCount} Courses</span>}
                 </div>
                 <h3 className="font-serif-ccl text-lg font-bold text-zinc-950">{lab.name}</h3>
+                <div className="mt-2"><LabAvailability id={lab.id} /></div>
                 <p className="text-xs text-zinc-600 mt-2 leading-relaxed">{lab.shortDesc}</p>
 
                 <div className="mt-4 flex flex-wrap gap-1">
@@ -283,13 +285,14 @@ export const PublicHome: React.FC = () => {
 
               <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
                 <span className="text-[11px] text-zinc-400 font-mono">
-                  {lab.studentCount.toLocaleString()} Learners
+                  {isLabOpen(lab.id) ? `${lab.studentCount.toLocaleString()} Learners` : 'Not yet open'}
                 </span>
                 <button
+                  disabled={!isLabOpen(lab.id)}
                   onClick={() => setCurrentView('public_courses')}
-                  className="text-xs font-semibold text-zinc-900 hover:underline flex items-center gap-1"
+                  className="disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold text-zinc-900 hover:underline flex items-center gap-1"
                 >
-                  <span>Explore Courses</span>
+                  <span>{isLabOpen(lab.id) ? 'Explore Courses' : 'Coming soon'}</span>
                   <ArrowRight className="h-3 w-3" />
                 </button>
               </div>

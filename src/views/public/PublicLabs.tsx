@@ -1,3 +1,4 @@
+import { LabAvailability, isLabOpen } from '../../components/LabAvailability';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LABS } from '../../data/seedData';
@@ -72,7 +73,7 @@ export const PublicLabs: React.FC = () => {
                 }}
                 className="rounded-full bg-black px-7 py-3.5 text-xs sm:text-sm font-semibold text-white hover:bg-zinc-800 transition-colors shadow-sm flex items-center gap-2"
               >
-                <span>Get Full Lab Access</span>
+                <span>Start with AI Foundations</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
 
@@ -192,10 +193,11 @@ export const PublicLabs: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between text-xs text-zinc-400 font-mono mb-2">
                   <span className="text-zinc-900 font-bold uppercase">Level: {lab.level}</span>
-                  <span>{lab.courseCount} Courses · {lab.studentCount.toLocaleString()} Learners</span>
+                  {isLabOpen(lab.id) && <span>{lab.courseCount} Courses · {lab.studentCount.toLocaleString()} Learners</span>}
                 </div>
 
                 <h3 className="font-serif-ccl text-2xl font-bold text-zinc-950 mt-1">{lab.name}</h3>
+                <div className="mt-2"><LabAvailability id={lab.id} /></div>
                 <p className="text-xs sm:text-sm text-zinc-600 mt-2 leading-relaxed">{lab.description}</p>
 
                 {/* Topics */}
@@ -242,10 +244,11 @@ export const PublicLabs: React.FC = () => {
                     : 'Hands-on Projects'}
                 </span>
                 <button
+                  disabled={!isLabOpen(lab.id)}
                   onClick={() => setCurrentView('public_courses')}
-                  className="rounded-full bg-black hover:bg-zinc-800 text-white px-5 py-2.5 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+                  className="disabled:opacity-40 disabled:cursor-not-allowed rounded-full bg-black hover:bg-zinc-800 text-white px-5 py-2.5 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
                 >
-                  <span>Explore Courses</span>
+                  <span>{isLabOpen(lab.id) ? 'Explore Courses' : 'Coming soon'}</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -262,12 +265,11 @@ export const PublicLabs: React.FC = () => {
           </div>
 
           <h2 className="font-serif-ccl text-3xl sm:text-5xl font-bold text-white tracking-tight">
-            Ready to Master All 10 Labs?
+            Start with AI Foundations
           </h2>
 
           <p className="mx-auto max-w-xl text-xs sm:text-sm text-zinc-300 leading-relaxed">
-            Gain immediate access to full course modules, step-by-step assignments, live masterclasses,
-            and an empowering global community.
+            Begin with AI Foundations. Our other nine learning labs are coming soon.
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row justify-center gap-3">
