@@ -63,3 +63,17 @@ The first administrator must already have a registered, verified account. Assign
 Verification: TypeScript and production build; database tests include two instructors, private drafts, owner-only updates, publishing/unpublishing, ownership spoofing, role revocation, students denied authoring, and administrator oversight. Hosted ownership checks ran inside a rolled-back transaction. Browser verification remains blocked by the environment's Chromium startup crash.
 
 Supabase security review also reports disabled leaked-password protection; dashboard guidance: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection . The intentional contact-RPC security-definer advisories are documented above.
+
+## WhatsApp signup popup and contact
+
+Contact details: +234 806 168 8292; cclabsupport@gmail.com; https://whatsapp.com/channel/0029VbB8jEWEawdyeLVjfb3i . Contact form submissions continue to appear in Admin Operations → Contact inquiries.
+
+The global popup triggers after 12 seconds of engagement, on a desktop top-edge exit or after scrolling 55% down a page. It waits while other dialogs or inputs are active, supports Escape/focus trapping, and dismisses for the browser session. It collects name/email, an optional WhatsApp number, and explicit consent for one welcome email. No PDF is advertised. Successful submissions redirect to the fixed WhatsApp channel; this does not automatically follow the channel for the visitor.
+
+POST /api/channel-signup validates and saves a contact inquiry with subject "WhatsApp channel signup" and structured phone/consent/source information in its message. Existing database throttling limits submissions to three per email per hour. The browser never gets a Brevo credential. The API does not send an email if saving fails.
+
+### Activate welcome email sending
+
+Add BREVO_API_KEY as a server-only Vercel environment variable for production (and preview if desired), then redeploy. Generate it in Brevo → SMTP & API → API keys, not SMTP keys. Do not prefix it with VITE_. The verified sender defaults to zayoncreatives@gmail.com; optionally set BREVO_SENDER_EMAIL to a different verified sender. Reply-to is cclabsupport@gmail.com. Without this key, signup storage and redirect work, but no welcome email is sent. There is no automatic backfill of earlier signups. Failed provider requests are logged without subscriber details. SMTP settings in Supabase apply to authentication emails, not this endpoint.
+
+Validation: node tests/channel-signup.mjs uses mock providers and does not send any email.

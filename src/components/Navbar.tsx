@@ -39,6 +39,7 @@ export const Navbar: React.FC = () => {
     { label: 'Membership', view: 'public_membership' },
     { label: 'Churches', view: 'public_churches' },
     { label: 'About', view: 'public_about' },
+    { label: 'Contact', view: 'public_contact' },
   ];
 
   const handleNav = (view: AppView) => {

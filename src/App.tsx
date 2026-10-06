@@ -1,3 +1,4 @@
+import { ChannelPopup } from './components/ChannelPopup';
 import React from 'react';
 import { useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
@@ -164,6 +165,7 @@ export const AppContent: React.FC = () => {
       <AssistantDrawer />
       <AuthModal />
       <OnboardingModal />
+      <ChannelPopup />
     </div>
   );
 };

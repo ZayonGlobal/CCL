@@ -326,32 +326,9 @@ export const PublicContact: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Direct Info Cards */}
           <div className="lg:col-span-5 space-y-5">
-            <div className="rounded-3xl border border-gray-200/90 bg-white p-7 shadow-[0_2px_14px_rgba(0,0,0,0.03)] space-y-3">
-              <Building2 className="h-6 w-6 text-zinc-900" />
-              <h3 className="font-serif-ccl text-lg font-bold text-zinc-950">Church Media Partnerships</h3>
-              <p className="text-xs text-zinc-600 leading-relaxed">
-                For churches wanting custom team licensing, volunteer cohorts, or on-site workshops.
-              </p>
-              <p className="text-xs font-mono text-zinc-800 pt-1 font-semibold">churches@christiancreatorlab.com</p>
-            </div>
-
-            <div className="rounded-3xl border border-gray-200/90 bg-white p-7 shadow-[0_2px_14px_rgba(0,0,0,0.03)] space-y-3">
-              <Users className="h-6 w-6 text-zinc-900" />
-              <h3 className="font-serif-ccl text-lg font-bold text-zinc-950">Instructors & Mentors</h3>
-              <p className="text-xs text-zinc-600 leading-relaxed">
-                Are you an experienced Christian designer, motion artist, or prompt engineer? Apply to lead a lab.
-              </p>
-              <p className="text-xs font-mono text-zinc-800 pt-1 font-semibold">mentors@christiancreatorlab.com</p>
-            </div>
-
-            <div className="rounded-3xl border border-gray-200/90 bg-[#f9fafb] p-7 space-y-2">
-              <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold">
-                COMMUNICATION PLEDGE
-              </div>
-              <p className="text-xs text-zinc-700 leading-relaxed">
-                We review every inquiry prayerfully and aim to respond within 24–48 business hours.
-              </p>
-            </div>
+            <div className="rounded-3xl border bg-white p-7 space-y-3"><Mail className="h-6 w-6"/><h3 className="font-serif-ccl text-xl font-bold">Email support</h3><p className="text-sm text-zinc-600">Questions about learning, partnerships, or teaching at CCL?</p><a className="block text-sm font-semibold underline break-all" href="mailto:cclabsupport@gmail.com">cclabsupport@gmail.com</a></div>
+            <div className="rounded-3xl border bg-white p-7 space-y-3"><MessageSquare className="h-6 w-6"/><h3 className="font-serif-ccl text-xl font-bold">Call or WhatsApp</h3><a className="block text-sm font-semibold underline" href="tel:+2348061688292">+234 806 168 8292</a><a className="inline-block text-sm underline" href="https://wa.me/2348061688292" target="_blank" rel="noopener noreferrer">Chat with CCL support →</a></div>
+            <div className="rounded-3xl border bg-white p-7 space-y-3"><Users className="h-6 w-6"/><h3 className="font-serif-ccl text-xl font-bold">Join our WhatsApp channel</h3><p className="text-sm text-zinc-600">Follow Christian Creator Lab for AI tips, creative resources, and learning updates.</p><a className="inline-block rounded-full bg-black text-white px-5 py-3 text-sm font-semibold" href="https://whatsapp.com/channel/0029VbB8jEWEawdyeLVjfb3i" target="_blank" rel="noopener noreferrer">Follow the channel →</a></div>
           </div>
 
           {/* Right Column: Contact Form */}
