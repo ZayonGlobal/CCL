@@ -38,6 +38,7 @@ export type AppView =
   | 'growth'
   | 'profile'
   | 'teams'
+  | 'instructor'
   | 'admin'
   | 'verify_certificate';
 
@@ -160,6 +161,7 @@ function useAppState() {
     if (!view.startsWith('public_') && !isAuthenticated) {
       setAuthModalMode('login'); setIsAuthModalOpen(true); return;
     }
+    if (view === 'instructor' && currentUser.role !== 'instructor' && !isAdmin(currentUser.role)) { setDataError('Instructor access is required.'); return; }
     if (view === 'admin' && !isAdmin(currentUser.role)) { setDataError('Administrator access is required.'); return; }
     navigate(view); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -288,12 +290,19 @@ function useAppState() {
     setBookmarks(v => { const next = new Set(v); saved ? next.delete(itemId) : next.add(itemId); return next; });
   });
   const publishCatalog = (kind: CatalogKind, payload: any, published = false) => perform(async () => {
-    if (!isAdmin(currentUser.role)) throw new Error('Administrator access is required.');
-    const { error } = await backend().from('ccl_catalog').upsert({ kind, id: payload.id, payload, published });
+    const existing = catalogRows.find(r => r.kind === kind && r.id === payload.id);
+    if (!isAdmin(currentUser.role) && !(currentUser.role === 'instructor' && kind === 'course' && (!existing || existing.owner_id === currentUser.id))) throw new Error('You can only manage your own courses.');
+    const { ownerId, ...content } = payload;
+    const row = { kind, id: content.id, payload: content, published };
+    const query = backend().from('ccl_catalog');
+    const result = existing
+      ? await query.update(row).eq('kind', kind).eq('id', content.id).select('id').single()
+      : await query.insert({ ...row, owner_id: currentUser.id }).select('id').single();
+    const { error } = result;
     if (error) throw error; await fetchCatalog();
   });
 
-  const payloads = <T,>(kind: CatalogKind) => catalogRows.filter(r => r.kind === kind).map(r => ({ ...r.payload, published: r.published }) as T);
+  const payloads = <T,>(kind: CatalogKind) => catalogRows.filter(r => r.kind === kind).map(r => ({ ...r.payload, ownerId: r.owner_id, published: r.published }) as T);
   const courses = payloads<Course>('course').map(c => {
     const modules = c.modules.map(m => ({ ...m, lessons: m.lessons.map(l => ({ ...l,
       completed: Boolean(progress.find(p => p.course_id === c.id && p.lesson_id === l.id)?.completed) })) }));

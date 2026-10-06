@@ -118,6 +118,7 @@ export interface Module {
 }
 
 export interface Course {
+  ownerId?: string | null;
   id: string;
   slug: string;
   title: string;

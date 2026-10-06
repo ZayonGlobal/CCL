@@ -40,6 +40,7 @@ import { TeamsView } from './views/member/TeamsView';
 import { CertificateVerifyView } from './views/member/CertificateVerifyView';
 
 // Admin views
+import { InstructorDashboardView } from './views/instructor/InstructorDashboardView';
 import { AdminDashboardView } from './views/admin/AdminDashboardView';
 
 export const AppContent: React.FC = () => {
@@ -57,6 +58,7 @@ export const AppContent: React.FC = () => {
       return <div className="bg-white border rounded-3xl p-8"><h1 className="text-2xl font-serif-ccl">Lessons are coming soon</h1><p className="mt-2 text-sm">This course has no published lessons yet.</p></div>;
     if (currentView === 'challenge_detail' && !challenges.length)
       return <div className="bg-white border rounded-3xl p-8">No challenges are open yet.</div>;
+    if (currentView === 'instructor' && !['instructor','administrator','super_admin'].includes(currentUser.role)) return <div>Instructor access is required.</div>;
     if (currentView === 'admin' && !['administrator','super_admin'].includes(currentUser.role))
       return <div className="bg-white border rounded-3xl p-8">Administrator access is required.</div>;
     switch (currentView) {
@@ -117,6 +119,8 @@ export const AppContent: React.FC = () => {
         return <CertificateVerifyView />;
 
       // Admin Pages
+      case 'instructor':
+        return <InstructorDashboardView />;
       case 'admin':
         return <AdminDashboardView />;
 

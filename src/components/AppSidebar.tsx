@@ -110,6 +110,7 @@ export const AppSidebar: React.FC = () => {
             );
           })}
 
+          {(isAdministrator || currentUser.role === 'instructor') && <button onClick={() => setCurrentView('instructor')} className={`w-full rounded-xl px-4 py-3 text-left text-sm font-semibold ${currentView === 'instructor' ? 'bg-white/10 text-white' : 'text-zinc-300 hover:bg-white/5'}`}>Instructor Studio</button>}
           {isAdministrator && (
             <button
               onClick={() => setCurrentView('admin')}

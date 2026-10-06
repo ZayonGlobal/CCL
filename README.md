@@ -51,3 +51,15 @@ Before activating registration, test confirmation email delivery and password re
 The migrations have been exercised with a local PostgreSQL-compatible engine for signup triggers, private-row isolation, forged metadata, enrollment restrictions, lesson validation, signed author identity, anonymous read denial, enquiry validation and administrator management. A rollback-only test also passed on the live database for signup triggers, safe default roles, private-row isolation, privilege protection, signed author identity and inquiry submissions; it leaves no test users or records. The public catalog API is accessible and anonymous profile reads are denied. Live Auth reports email signup enabled with confirmation required. Confirmation and password-reset email delivery still need verification at the public origin.
 
 The security advisors report only the intentionally public `ccl_submit_inquiry` SECURITY DEFINER RPC. It validates inputs, caps repeat requests, and returns no private inquiry data. This is reviewed against https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable; direct anonymous table access remains denied.
+
+## Instructor Studio
+
+Registered members start as students. An administrator assigns the instructor role through Admin Operations → Members and access. Instructors open Instructor Studio from the desktop sidebar or the profile menu on mobile. They can create drafts, edit course descriptions and access tiers, add/remove modules and YouTube lessons, edit notes/transcripts, and publish/unpublish their own courses. Administrators can edit all courses through the same Studio.
+
+The catalog owner_id column is authoritative; profile metadata and payload instructor names do not grant access. Row-level policies prevent students from authoring, instructors from editing other owners' courses or other catalog types, and ownership reassignment by instructors. Course deletion remains admin-only. Existing ownerless courses remain administrator-managed. Instructor Studio currently previews course details; full learner playback uses the normal enrollment flow.
+
+The first administrator must already have a registered, verified account. Assign its protected ccl_accounts.role by the matching auth.users ID, never by user metadata. The requested first-admin email has not yet registered as of this implementation; no account was fabricated or verification bypassed.
+
+Verification: TypeScript and production build; database tests include two instructors, private drafts, owner-only updates, publishing/unpublishing, ownership spoofing, role revocation, students denied authoring, and administrator oversight. Hosted ownership checks ran inside a rolled-back transaction. Browser verification remains blocked by the environment's Chromium startup crash.
+
+Supabase security review also reports disabled leaked-password protection; dashboard guidance: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection . The intentional contact-RPC security-definer advisories are documented above.

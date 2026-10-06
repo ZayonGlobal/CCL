@@ -167,6 +167,7 @@ export const MemberTopBar: React.FC = () => {
                   <Globe className="h-3.5 w-3.5 text-zinc-500" />
                   <span>Switch to Public Website</span>
                 </button>
+                {['instructor','administrator','super_admin'].includes(currentUser.role) && <button onClick={() => { setCurrentView('instructor'); setUserDropdownOpen(false); }} className="w-full px-3 py-2 text-left font-semibold rounded-lg hover:bg-zinc-100">Instructor Studio</button>}
                 {(currentUser.role === 'administrator' ||
                   currentUser.role === 'super_admin') && (
                   <button

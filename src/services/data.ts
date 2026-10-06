@@ -3,7 +3,7 @@ import type { UserProfile, UserRole, MembershipTier } from '../types';
 import type { User } from '@supabase/supabase-js';
 
 export type CatalogKind = 'course' | 'challenge' | 'resource' | 'prompt' | 'live' | 'opportunity';
-export interface CatalogRow { kind: CatalogKind; id: string; payload: any; published: boolean }
+export interface CatalogRow { kind: CatalogKind; id: string; payload: any; published: boolean; owner_id?: string | null }
 export interface DataRecord { id: string; user_id: string; kind: string; target_id: string | null; payload: any; status: string; created_at: string }
 
 // Account roles and membership always come from protected database columns.
