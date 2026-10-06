@@ -2,6 +2,8 @@
 
 A React/Vite learning platform with Supabase authentication and persistent creator data.
 
+Production site: https://ccl-delta.vercel.app. Its dedicated Supabase project is `rvnrajnrickhrqlmgeuh`, accessed through the CCL Zayon DEv connection. The database migrations and public frontend connection values are installed. Auth redirect configuration and real confirmation/reset email delivery still need verification before public registration is considered ready.
+
 ## Run locally
 
 Use Node 22 or newer. Run `npm ci`, copy `.env.example` to `.env.local`, fill in the two public Supabase values, then run `npm run dev`. `npm run lint` checks TypeScript; `npm run build` produces `dist`.
@@ -10,11 +12,11 @@ Registration is disabled when no backend is configured. Users are never automati
 
 ## Configure the dedicated Supabase backend
 
-1. Create a dedicated project named CCL. The connected organization currently has two active free projects, so a free slot must be available before a new project can be created. Do not apply CCL's schema to an unrelated site without intentionally choosing shared authentication.
-2. Run `supabase/migrations/20261005223812_ccl_backend.sql` in that project's SQL editor. It creates the tables, signup trigger, grants, validated contact RPC and row-level security policies. Alternatively link this directory with the Supabase CLI and push its migration.
-3. Set the Auth **Site URL** to the exact deployed CCL origin. Add the same origin and `https://YOUR-CCL-HOST/?recovery=1` to the permitted redirect URLs. For local testing, add `http://localhost:3000` and `http://localhost:3000/?recovery=1`.
+1. Use the dedicated CCL project above. For a separate installation, create a dedicated project; do not apply CCL's schema to an unrelated site without intentionally choosing shared authentication.
+2. On a new installation, apply the SQL files under `supabase/migrations` in filename order. They create the tables, signup trigger, grants, validated contact RPC and row-level security policies, and restrict API execution of Supabase's internal RLS event-trigger helper. Alternatively link this directory with the Supabase CLI and push its migrations. Both migrations are already applied to the production project.
+3. Set the Auth **Site URL** to `https://ccl-delta.vercel.app`. Add `https://ccl-delta.vercel.app` and `https://ccl-delta.vercel.app/?recovery=1` to the permitted redirect URLs. For local testing, add `http://localhost:3000` and `http://localhost:3000/?recovery=1`.
 4. Keep email confirmations enabled, use a minimum password length of 8, and configure a production SMTP provider for confirmation and password reset emails. Supabase's built-in development mail service may only deliver to authorized addresses and has rate limits. The app never reports a mail request as successful if the API rejects it.
-5. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to Vercel's Preview and Production environments, then rebuild. Use a publishable key, never a service-role or secret key. Vite replaces these variables at build time.
+5. For another deployment, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to Vercel's Preview and Production environments, then rebuild. These values are already saved for CCL's Production, Preview and Development environments. Use a publishable key, never a service-role or secret key. Vite replaces these variables at build time.
 6. Register and confirm your own account. Bootstrap the first platform administrator using the SQL below, with the real registered user ID copied from Supabase Auth. Do not accept administrator roles from signup metadata.
 
 ```sql
@@ -46,4 +48,6 @@ Run `npm run test:db` for the PostgreSQL-compatible schema and access-control su
 
 Before activating registration, test confirmation email delivery and password recovery at the actual public origin, then test signup, onboarding, logout/login, project submission, saved progress and contact requests. Check that a second account cannot access the first account's private rows and that only administrators can change roles, plans, course publication or review statuses.
 
-The migration has been exercised with a local PostgreSQL-compatible engine for signup triggers, private-row isolation, forged metadata, enrollment restrictions, lesson validation, signed author identity, anonymous read denial, enquiry validation and administrator management. Production build and TypeScript checks are also required. Live Supabase authentication and email delivery remain dependent on provisioning a dedicated project and configuring its public origin.
+The migrations have been exercised with a local PostgreSQL-compatible engine for signup triggers, private-row isolation, forged metadata, enrollment restrictions, lesson validation, signed author identity, anonymous read denial, enquiry validation and administrator management. A rollback-only test also passed on the live database for signup triggers, safe default roles, private-row isolation, privilege protection, signed author identity and inquiry submissions; it leaves no test users or records. The public catalog API is accessible and anonymous profile reads are denied. Live Auth reports email signup enabled with confirmation required. Confirmation and password-reset email delivery still need verification at the public origin.
+
+The security advisors report only the intentionally public `ccl_submit_inquiry` SECURITY DEFINER RPC. It validates inputs, caps repeat requests, and returns no private inquiry data. This is reviewed against https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable; direct anonymous table access remains denied.

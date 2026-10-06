@@ -6,7 +6,14 @@ await db.exec(`create role anon; create role authenticated; create schema auth;
 create table auth.users (id uuid primary key, raw_user_meta_data jsonb not null default '{}');
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
 grant usage on schema auth to anon,authenticated; grant execute on function auth.uid() to anon,authenticated;`);
-await db.exec(fs.readFileSync(new URL('../supabase/migrations/20261005223812_ccl_backend.sql', import.meta.url),'utf8'));
+// Model the pre-existing Supabase internal helper to verify its API grants are revoked.
+await db.exec('create function public.rls_auto_enable() returns void language sql security definer as $$ select $$;');
+const migrationDir = new URL('../supabase/migrations/', import.meta.url);
+for (const name of fs.readdirSync(migrationDir).filter(n => n.endsWith('.sql')).sort()) {
+  await db.exec(fs.readFileSync(new URL(name, migrationDir), 'utf8'));
+}
+assert.equal((await db.query("select has_function_privilege('anon','public.rls_auto_enable()','execute') as allowed")).rows[0].allowed, false);
+assert.equal((await db.query("select has_function_privilege('authenticated','public.rls_auto_enable()','execute') as allowed")).rows[0].allowed, false);
 const alice='11111111-1111-4111-8111-111111111111', bob='22222222-2222-4222-8222-222222222222';
 await db.query('insert into auth.users(id,raw_user_meta_data) values($1,$2),($3,$4)',[alice,JSON.stringify({first_name:'Alice',role:'super_admin',membership_tier:'pro'}),bob,JSON.stringify({first_name:'Bob'})]);
 const rows=async(sql,params=[]) => (await db.query(sql,params)).rows;
