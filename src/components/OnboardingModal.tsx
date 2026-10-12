@@ -1,3 +1,4 @@
+import { LoadingSymbol } from './LoadingSymbol';
 import { BrandLogo } from './BrandLogo';
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
@@ -300,7 +301,7 @@ export const OnboardingModal: React.FC = () => {
                 disabled={saving || !firstName.trim() || !lastName.trim()}
                 className="flex items-center gap-2 rounded-full bg-black hover:bg-zinc-800 px-7 py-2.5 text-xs font-semibold text-white transition-colors shadow-2xs"
               >
-                <span>{saving ? 'Saving…' : 'Enter Your Creator Lab'}</span>
+                {saving && <LoadingSymbol inline inverse label="Saving…" />}<span>{saving ? 'Saving…' : 'Enter Your Creator Lab'}</span>
                 <CheckCircle2 className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -310,3 +311,4 @@ export const OnboardingModal: React.FC = () => {
     </div>
   );
 };
+

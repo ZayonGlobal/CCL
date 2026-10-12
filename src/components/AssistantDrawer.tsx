@@ -1,3 +1,4 @@
+import { LoadingSymbol } from './LoadingSymbol';
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { askCclAssistant, AssistantMessage } from '../services/cclAssistant';
@@ -168,7 +169,7 @@ export const AssistantDrawer: React.FC = () => {
                 <Bot className="h-3.5 w-3.5" />
               </div>
               <div className="rounded-2xl bg-[#f4f4f6] p-3 flex items-center gap-2 text-zinc-500">
-                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                <LoadingSymbol inline label="Consulting CCL curriculum…" />
                 <span>Consulting CCL curriculum knowledge base...</span>
               </div>
             </div>
@@ -222,3 +223,4 @@ export const AssistantDrawer: React.FC = () => {
     </div>
   );
 };
+

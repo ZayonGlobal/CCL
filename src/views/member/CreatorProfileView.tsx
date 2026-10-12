@@ -1,3 +1,4 @@
+import { LoadingSymbol } from '../../components/LoadingSymbol';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
@@ -210,7 +211,7 @@ export const CreatorProfileView: React.FC = () => {
                 type="button"
                 onClick={handleSave} disabled={saving}
                 className="rounded-full bg-black hover:bg-zinc-800 px-6 py-2 text-xs font-semibold text-white transition-colors shadow-2xs"
-              >
+              >{saving && <LoadingSymbol inline inverse label="Saving…" />}
                 Save Profile
               </button>
             </div>
@@ -256,3 +257,4 @@ export const CreatorProfileView: React.FC = () => {
     </div>
   );
 };
+

@@ -1,3 +1,4 @@
+import { LoadingSymbol } from '../../components/LoadingSymbol';
 import { saveInquiry } from '../../services/data';
 import { errorMessage } from '../../services/supabase';
 import React, { useState } from 'react';
@@ -403,7 +404,7 @@ export const PublicContact: React.FC = () => {
                 <button
                   type="submit" disabled={saving}
                   className="rounded-full bg-black px-8 py-3.5 text-xs sm:text-sm font-semibold text-white hover:bg-zinc-800 transition-colors shadow-sm inline-flex items-center gap-2"
-                >
+                >{saving && <LoadingSymbol inline inverse label="Saving…" />}
                   <Send className="h-3.5 w-3.5" />
                   <span>Send Message</span>
                 </button>
@@ -415,3 +416,4 @@ export const PublicContact: React.FC = () => {
     </div>
   );
 };
+

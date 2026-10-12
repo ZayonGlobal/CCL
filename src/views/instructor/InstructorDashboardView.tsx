@@ -1,3 +1,4 @@
+import { LoadingSymbol } from '../../components/LoadingSymbol';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LABS } from '../../data/seedData';
@@ -89,14 +90,15 @@ export const InstructorDashboardView: React.FC = () => {
           <button type="button" className={secondary} onClick={() => patchModule(m.id, { lessons: [...m.lessons, { id: `lesson_${crypto.randomUUID()}`, moduleId: m.id, courseId: editing.id, title: '', description: '', youtubeVideoId: '', durationMinutes: 0, notes: '', transcript: '', resources: [], order: m.lessons.length + 1 }] })}>Add lesson</button>
         </section>)}
         <div className="flex flex-wrap gap-3 pt-4 border-t">
-          <button type="submit" className="rounded-full bg-black text-white px-6 py-3 text-sm font-semibold">{busy ? 'Saving…' : editing.published ? 'Save published course' : 'Save draft'}</button>
+          <button type="submit" className="rounded-full bg-black text-white px-6 py-3 text-sm font-semibold">{busy && <LoadingSymbol inline inverse label="Saving course…" />}{busy ? 'Saving…' : editing.published ? 'Save published course' : 'Save draft'}</button>
           {!editing.published && <button type="button" className={secondary} onClick={() => save(editing, true)}>Save and publish</button>}
           <button type="button" className={secondary} onClick={() => { if (window.confirm('Discard unsaved course changes?')) setEditing(null); }}>Cancel</button>
         </div>
       </fieldset>
     </form> : <section className="bg-white border rounded-3xl p-5 sm:p-8 space-y-4"><h2 className="text-2xl font-serif-ccl">{admin ? 'All courses' : 'Your courses'}</h2>
       {!owned.length && <p className="text-sm text-zinc-500">No courses yet. Create a draft, add your lessons, then publish when ready.</p>}
-      {owned.map(c => <div key={c.id} className="border-t pt-4 flex flex-wrap items-center justify-between gap-4"><div><h3 className="font-semibold">{c.title}</h3><p className="text-xs text-zinc-500 mt-1">{c.published ? 'Published' : 'Draft'} · {c.lessonCount} lessons · {c.labName}</p></div><div className="flex flex-wrap gap-2"><button disabled={busy} className={secondary} onClick={() => edit(c)}>Edit</button><button disabled={busy} className={secondary} onClick={() => navigateWithParam('course_detail', c.id)}>Preview</button><button disabled={busy} className={secondary} onClick={() => save(c, !c.published)}>{c.published ? 'Unpublish' : 'Publish'}</button></div></div>)}
+      {owned.map(c => <div key={c.id} className="border-t pt-4 flex flex-wrap items-center justify-between gap-4"><div><h3 className="font-semibold">{c.title}</h3><p className="text-xs text-zinc-500 mt-1">{c.published ? 'Published' : 'Draft'} · {c.lessonCount} lessons · {c.labName}</p></div><div className="flex flex-wrap gap-2"><button disabled={busy} className={secondary} onClick={() => edit(c)}>Edit</button><button disabled={busy} className={secondary} onClick={() => navigateWithParam('course_detail', c.id)}>Preview</button><button disabled={busy} className={secondary} onClick={() => save(c, !c.published)}>{busy && <LoadingSymbol inline label="Updating course…" />}{c.published ? 'Unpublish' : 'Publish'}</button></div></div>)}
     </section>}
   </div>;
 };
+

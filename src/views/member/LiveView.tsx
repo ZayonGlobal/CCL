@@ -1,3 +1,4 @@
+import { LoadingSymbol } from '../../components/LoadingSymbol';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 
@@ -185,7 +186,7 @@ export const LiveView: React.FC = () => {
                 <button
                   type="submit" disabled={saving}
                   className="rounded-xl bg-black hover:bg-zinc-800 text-white px-4 py-2 text-xs font-semibold transition-colors"
-                >
+                >{saving && <LoadingSymbol inline inverse label="Saving…" />}
                   Update Stream
                 </button>
               </form>
@@ -231,7 +232,7 @@ export const LiveView: React.FC = () => {
             <button
               type="submit" disabled={saving}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-black hover:bg-zinc-800 text-white shrink-0 shadow-2xs"
-            >
+            >{saving && <LoadingSymbol inline inverse label="Saving…" />}
               <Send className="h-3.5 w-3.5" />
             </button>
           </form>
@@ -276,3 +277,4 @@ export const LiveView: React.FC = () => {
     </div>
   );
 };
+

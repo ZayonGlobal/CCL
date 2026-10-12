@@ -1,3 +1,4 @@
+import { LoadingSymbol } from '../../components/LoadingSymbol';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { COMMUNITY_SPACES } from '../../data/seedData';
@@ -227,10 +228,10 @@ export const CommunityView: React.FC = () => {
                     className="flex-1 rounded-full border border-gray-200 bg-[#f9fafb] px-4 py-2 text-xs text-zinc-900 focus:outline-none focus:border-black"
                   />
                   <button
-                    onClick={() => handleSendReply(post.id)}
+                    onClick={() => handleSendReply(post.id)} disabled={saving}
                     className="flex h-8 w-8 items-center justify-center rounded-full bg-black hover:bg-zinc-800 text-white shrink-0 shadow-2xs"
                   >
-                    <Send className="h-3.5 w-3.5" />
+                    {saving ? <LoadingSymbol inline inverse label="Sending reply…" /> : <Send className="h-3.5 w-3.5" />}
                   </button>
                 </div>
               </div>
@@ -306,7 +307,7 @@ export const CommunityView: React.FC = () => {
               <button
                 type="submit" disabled={saving}
                 className="w-full rounded-full bg-black hover:bg-zinc-800 text-white py-3 text-xs font-semibold transition-colors shadow-2xs mt-2"
-              >
+              >{saving && <LoadingSymbol inline inverse label="Saving…" />}
                 Publish Discussion Post
               </button>
             </form>
@@ -316,3 +317,4 @@ export const CommunityView: React.FC = () => {
     </div>
   );
 };
+

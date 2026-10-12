@@ -1,3 +1,4 @@
+import { LoadingSymbol } from './LoadingSymbol';
 import { BrandLogo } from './BrandLogo';
 import React, { useEffect, useRef, useState } from 'react';
 import { X, ArrowRight, CheckCircle2 } from 'lucide-react';
@@ -92,7 +93,7 @@ export const AuthModal: React.FC = () => {
             {!isPasswordRecovery && <div><label htmlFor="auth-email" className="text-xs font-semibold">Email address</label><input id="auth-email" type="email" required maxLength={254} autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} className={inputStyle} /></div>}
             {!forgot && <div><label htmlFor="auth-password" className="text-xs font-semibold">{isPasswordRecovery ? 'New password' : 'Password'}</label><input id="auth-password" type="password" required minLength={registering || isPasswordRecovery ? 8 : undefined} autoComplete={registering || isPasswordRecovery ? 'new-password' : 'current-password'} value={password} onChange={e => setPassword(e.target.value)} className={inputStyle} /></div>}
             {(registering || isPasswordRecovery) && <div><label htmlFor="auth-confirm" className="text-xs font-semibold">Confirm password</label><input id="auth-confirm" type="password" required minLength={8} autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className={inputStyle} /></div>}
-            <button type="submit" className="w-full rounded-full bg-black py-3 text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50">{busy ? 'Please wait…' : isPasswordRecovery ? 'Save new password' : forgot ? 'Send reset link' : registering ? 'Create free account' : 'Sign in'}<ArrowRight className="h-4 w-4" /></button>
+            <button type="submit" className="w-full rounded-full bg-black py-3 text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50">{busy && <LoadingSymbol inline inverse label="Please wait…" />}{busy ? 'Please wait…' : isPasswordRecovery ? 'Save new password' : forgot ? 'Send reset link' : registering ? 'Create free account' : 'Sign in'}<ArrowRight className="h-4 w-4" /></button>
           </fieldset>
         </form>
         {!isPasswordRecovery && <div className="mt-5 text-center space-y-3 text-xs">
@@ -114,3 +115,4 @@ export const AuthModal: React.FC = () => {
     </div>
   );
 };
+

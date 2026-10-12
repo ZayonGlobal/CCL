@@ -1,3 +1,4 @@
+import { LoadingSymbol } from './LoadingSymbol';
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, X } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
@@ -53,9 +54,10 @@ export const ChannelPopup: React.FC = () => {
         <label className="block text-xs font-medium">Email<input required type="email" maxLength={254} autoComplete="email" placeholder="you@example.com" className={input+' mt-1'} style={{background:'#fff',color:'#111'}} value={email} onChange={e=>setEmail(e.target.value)}/></label>
         <label className="block text-xs font-medium">WhatsApp number<input type="tel" maxLength={30} autoComplete="tel" placeholder="+234…" className={input+' mt-1'} style={{background:'#fff',color:'#111'}} value={phone} onChange={e=>setPhone(e.target.value)}/></label>
         <div className="hidden" aria-hidden="true"><input tabIndex={-1} autoComplete="off" value={website} onChange={e=>setWebsite(e.target.value)} aria-label="Website"/></div>
-        <button disabled={busy} className="w-full rounded-full py-3 text-xs font-semibold disabled:opacity-50" style={{background:'#111',color:'#fff'}}>{busy?'Saving…':<span className="inline-flex items-center gap-2">Get free access<ArrowUpRight className="h-4 w-4"/></span>}</button>
+        <button disabled={busy} className="w-full rounded-full py-3 text-xs font-semibold disabled:opacity-50" style={{background:'#111',color:'#fff'}}>{busy && <LoadingSymbol inline inverse label="Saving…" />}{busy?'Saving…':<span className="inline-flex items-center gap-2">Get free access<ArrowUpRight className="h-4 w-4"/></span>}</button>
         <p className="text-[10px] leading-relaxed text-center text-zinc-500">Submit to save your details and receive a welcome email with the channel link. You’ll continue to WhatsApp.</p>
       </form>}
     </div>
   </div>;
 };
+

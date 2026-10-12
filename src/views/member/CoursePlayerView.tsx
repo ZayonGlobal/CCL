@@ -1,3 +1,4 @@
+import { LoadingSymbol } from '../../components/LoadingSymbol';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
@@ -283,7 +284,7 @@ export const CoursePlayerView: React.FC = () => {
                     <button
                       type="submit" disabled={saving}
                       className="rounded-full bg-black hover:bg-zinc-800 text-white px-6 py-2.5 text-xs font-semibold transition-colors shadow-2xs"
-                    >
+                    >{saving && <LoadingSymbol inline inverse label="Saving…" />}
                       Submit Milestone Project
                     </button>
                   </form>
@@ -313,7 +314,7 @@ export const CoursePlayerView: React.FC = () => {
                     <button
                       type="submit" disabled={saving}
                       className="rounded-full bg-black hover:bg-zinc-800 text-white px-5 py-2 text-xs font-semibold transition-colors shadow-2xs"
-                    >
+                    >{saving && <LoadingSymbol inline inverse label="Saving…" />}
                       Post Question
                     </button>
                   </div>
@@ -408,3 +409,4 @@ export const CoursePlayerView: React.FC = () => {
     </div>
   );
 };
+

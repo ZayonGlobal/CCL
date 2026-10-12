@@ -1,3 +1,4 @@
+import { LoadingSymbol } from './components/LoadingSymbol';
 import { ChannelPopup } from './components/ChannelPopup';
 import React from 'react';
 import { useApp } from './context/AppContext';
@@ -48,7 +49,7 @@ export const AppContent: React.FC = () => {
   const { currentView, isAuthenticated, theme, authLoading, dataLoading, dataError, setDataError, courses, challenges, currentUser, selectedCourseId } = useApp();
 
   const isPublicPage = currentView.startsWith('public_') || !isAuthenticated;
-  if (authLoading || (!isPublicPage && dataLoading)) return <div role="status" className="min-h-screen flex items-center justify-center bg-white text-zinc-700">Loading your Creator Lab…</div>;
+  if (authLoading || (!isPublicPage && dataLoading)) return <div role="status" className="min-h-screen flex items-center justify-center bg-white text-zinc-700"><LoadingSymbol label="Loading your Creator Lab…" /></div>;
 
   const renderView = () => {
     if (!isPublicPage && !isAuthenticated) return <PublicHome />;
@@ -173,3 +174,4 @@ export const AppContent: React.FC = () => {
 export default function App() {
   return <AppContent />;
 }
+

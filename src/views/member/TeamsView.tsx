@@ -1,3 +1,4 @@
+import { LoadingSymbol } from '../../components/LoadingSymbol';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 
@@ -16,8 +17,9 @@ export const TeamsView: React.FC = () => {
     }}>
       <div><label htmlFor="team-name" className="text-sm font-semibold">Church or organization name</label><input id="team-name" required maxLength={200} className="w-full border rounded-xl p-3 mt-1 text-sm" value={name} onChange={e => setName(e.target.value)} /></div>
       <div><label htmlFor="team-details" className="text-sm font-semibold">Tell us about your team</label><textarea id="team-details" required maxLength={3000} className="w-full border rounded-xl p-3 mt-1 text-sm" rows={4} value={details} onChange={e => setDetails(e.target.value)} /></div>
-      <button disabled={saving} className="rounded-full bg-black text-white px-6 py-3 text-sm font-semibold disabled:opacity-50">{saving ? 'Saving…' : 'Request team workspace'}</button>
+      <button disabled={saving} className="rounded-full bg-black text-white px-6 py-3 text-sm font-semibold disabled:opacity-50">{saving && <LoadingSymbol inline inverse label="Saving…" />}{saving ? 'Saving…' : 'Request team workspace'}</button>
     </form>
     {requests.length > 0 && <section className="rounded-3xl border bg-white p-7"><h2 className="font-serif-ccl text-xl">Your requests</h2>{requests.map(r => <div key={r.id} className="py-3 border-b text-sm"><strong>{r.payload.organizationName}</strong><p className="text-zinc-500 mt-1">{r.status} · {new Date(r.created_at).toLocaleDateString()}</p></div>)}</section>}
   </div>;
 };
+

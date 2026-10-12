@@ -1,3 +1,4 @@
+import { LoadingSymbol } from '../../components/LoadingSymbol';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
@@ -281,7 +282,7 @@ export const ProjectsView: React.FC = () => {
               <button
                 type="submit" disabled={saving}
                 className="w-full rounded-full bg-black hover:bg-zinc-800 text-white py-3 text-xs font-semibold transition-colors shadow-2xs mt-2"
-              >
+              >{saving && <LoadingSymbol inline inverse label="Saving…" />}
                 Add Project to Portfolio
               </button>
             </form>
@@ -291,3 +292,4 @@ export const ProjectsView: React.FC = () => {
     </div>
   );
 };
+

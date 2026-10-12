@@ -1,3 +1,4 @@
+import { LoadingSymbol } from '../../components/LoadingSymbol';
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import {
@@ -25,11 +26,15 @@ export const CourseDetailView: React.FC = () => {
 
   const course = courses.find((c) => c.id === selectedCourseId) || courses[0];
 
+  const [starting, setStarting] = React.useState(false);
   const handleStart = async () => {
+    if (starting) return; setStarting(true);
+    try {
     if (!course.isEnrolled) {
       if (!await enrollInCourse(course.id)) return;
     }
     navigateWithParam('course_player', course.id);
+    } finally { setStarting(false); }
   };
 
   return (
@@ -100,19 +105,19 @@ export const CourseDetailView: React.FC = () => {
               />
               <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
                 <button
-                  onClick={handleStart}
+                  onClick={handleStart} disabled={starting}
                   className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-lg hover:scale-105 transition-transform"
                 >
-                  <Play className="h-5 w-5 fill-black ml-0.5" />
+                  {starting ? <LoadingSymbol inline label="Opening course…" /> : <Play className="h-5 w-5 fill-black ml-0.5" />}
                 </button>
               </div>
             </div>
 
             <button
-              onClick={handleStart}
+              onClick={handleStart} disabled={starting}
               className="w-full rounded-full bg-black hover:bg-zinc-800 py-3 text-xs font-semibold text-white transition-colors shadow-2xs text-center"
             >
-              {course.isEnrolled ? 'Resume Course →' : 'Start Free Learning →'}
+              {starting && <LoadingSymbol inline inverse label="Opening course…" />}{course.isEnrolled ? 'Resume Course →' : 'Start Free Learning →'}
             </button>
             <p className="text-[10px] text-zinc-400 text-center font-mono">
               Includes prompt kits, project files & certificate
@@ -156,10 +161,7 @@ export const CourseDetailView: React.FC = () => {
                 {mod.lessons.map((lesson) => (
                   <div
                     key={lesson.id}
-                    onClick={async () => {
-                      if (!course.isEnrolled && !await enrollInCourse(course.id)) return;
-                      navigateWithParam('course_player', course.id);
-                    }}
+                    onClick={handleStart}
                     className="flex items-center justify-between p-3 rounded-xl hover:bg-[#f7f8fa] cursor-pointer transition-colors text-xs"
                   >
                     <div className="flex items-center gap-3">
@@ -187,3 +189,4 @@ export const CourseDetailView: React.FC = () => {
     </div>
   );
 };
+
