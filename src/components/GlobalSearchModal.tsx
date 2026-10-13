@@ -6,7 +6,7 @@ import {
   BookOpen,
   Trophy,
   Bookmark,
-  Sparkles,
+  Terminal,
   Layers,
   ArrowRight,
   ExternalLink,
@@ -107,7 +107,7 @@ export const GlobalSearchModal: React.FC = () => {
         <div className="max-h-[60vh] overflow-y-auto pt-3 space-y-4">
           {!query.trim() && (
             <div className="py-8 text-center space-y-3">
-              <Sparkles className="h-8 w-8 text-zinc-400 mx-auto" />
+              <Search className="h-8 w-8 text-zinc-400 mx-auto" />
               <p className="text-xs text-zinc-500">
                 Type keywords like <span className="font-semibold text-zinc-800 font-mono">"church media"</span>,{' '}
                 <span className="font-semibold text-zinc-800 font-mono">"easter"</span>, or{' '}
@@ -196,7 +196,7 @@ export const GlobalSearchModal: React.FC = () => {
               {results.prompts.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase text-zinc-400 font-semibold px-2">
-                    <Sparkles className="h-3.5 w-3.5" />
+                    <Terminal className="h-3.5 w-3.5" />
                     <span>Prompt Recipes ({results.prompts.length})</span>
                   </div>
                   <div className="space-y-1">
@@ -233,3 +233,4 @@ export const GlobalSearchModal: React.FC = () => {
     </div>
   );
 };
+

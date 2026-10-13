@@ -1368,7 +1368,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'ach_01', title: 'First Project Approved', description: 'Submitted a practical course project that passed mentor review.', iconName: 'CheckCircle2', earnedAt: 'Sept 20, 2026', category: 'project' },
   { id: 'ach_02', title: '7-Day Learning Streak', description: 'Returned every day to practice craft and build skills without skipping.', iconName: 'Flame', earnedAt: 'Oct 4, 2026', category: 'learning' },
   { id: 'ach_03', title: 'Certified Media Specialist', description: 'Fulfilled rigorous assessment requirements and earned official CCL certificate.', iconName: 'Award', earnedAt: 'Sept 22, 2026', category: 'learning' },
-  { id: 'ach_04', title: 'Challenge Participant', description: 'Entered the Church Easter Campaign Challenge with a complete submission.', iconName: 'Sparkles', earnedAt: 'Oct 3, 2026', category: 'challenge' },
+  { id: 'ach_04', title: 'Challenge Participant', description: 'Entered the Church Easter Campaign Challenge with a complete submission.', iconName: 'Flag', earnedAt: 'Oct 3, 2026', category: 'challenge' },
   { id: 'ach_05', title: 'Community Helper', description: 'Shared an in-depth breakdown of team workflows helping 40+ members.', iconName: 'Users', earnedAt: 'Oct 5, 2026', category: 'community' },
 ];
 
@@ -1391,3 +1391,4 @@ export const DEMO_ORGANIZATION: OrganizationTeam = {
     { id: 'usr_org_05', name: 'Ezekiel Adeleke', role: 'Youth Ministry Lead', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80', coursesCompleted: 1, hoursLearned: 9, status: 'Active' },
   ],
 };
+

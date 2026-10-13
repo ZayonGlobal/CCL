@@ -7,7 +7,6 @@ import {
   ExternalLink,
   CheckCircle2,
   Clock,
-  Sparkles,
   Award,
   Globe,
   Lock,

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
-  Sparkles,
   Copy,
   Check,
   Bookmark,
@@ -186,3 +185,4 @@ export const PromptLibraryView: React.FC = () => {
     </div>
   );
 };
+

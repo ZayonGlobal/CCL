@@ -6,7 +6,6 @@ import {
   Trophy,
   Clock,
   Calendar,
-  Sparkles,
   Upload,
   ExternalLink,
   Flame,

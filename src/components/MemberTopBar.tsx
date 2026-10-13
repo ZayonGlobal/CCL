@@ -9,7 +9,7 @@ import {
   User,
   Shield,
   LogOut,
-  Sparkles,
+  MessageCircle,
   Building2,
   LayoutDashboard,
   Globe,
@@ -62,7 +62,7 @@ export const MemberTopBar: React.FC = () => {
           className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-zinc-700 hover:text-black transition-colors"
           title="Open CCL Assistant"
         >
-          <Sparkles className="h-4 w-4 text-amber-600" />
+          <MessageCircle className="h-4 w-4 text-amber-600" />
           <span>Assistant</span>
         </button>
 

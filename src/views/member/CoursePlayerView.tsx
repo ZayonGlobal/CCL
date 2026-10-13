@@ -12,7 +12,6 @@ import {
   FileText,
   BookOpen,
   MessageSquare,
-  Sparkles,
   Award,
   Share2,
 } from 'lucide-react';

@@ -6,7 +6,6 @@ import {
   Layers,
   BookOpen,
   ArrowRight,
-  Sparkles,
   CheckCircle2,
   Users,
   Compass,
@@ -168,3 +167,4 @@ export const LabsView: React.FC = () => {
     </div>
   );
 };
+

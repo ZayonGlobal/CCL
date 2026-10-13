@@ -8,7 +8,7 @@ import {
   Radio,
   LayoutGrid,
   BarChart2,
-  Sparkles,
+  MessageCircle,
   Users,
   Building2,
   Shield,
@@ -124,7 +124,7 @@ export const AppSidebar: React.FC = () => {
           onClick={() => setIsAssistantOpen(true)}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/10 border border-amber-500/30 px-3 py-2.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/30 transition-all"
         >
-          <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+          <MessageCircle className="h-3.5 w-3.5 text-amber-400" />
           <span>Ask CCL Assistant</span>
         </button>
       </div>

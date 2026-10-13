@@ -2,7 +2,7 @@ import { LoadingSymbol } from './LoadingSymbol';
 import { BrandLogo } from './BrandLogo';
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Sparkles, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Compass, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
 import { LearningLevel } from '../types';
 
 export const OnboardingModal: React.FC = () => {
@@ -277,7 +277,7 @@ export const OnboardingModal: React.FC = () => {
 
             <div className="rounded-2xl border border-gray-200 bg-[#f9fafb] p-3 text-xs text-zinc-700 space-y-1">
               <div className="font-semibold text-zinc-950 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-zinc-900" />
+                <Compass className="h-3.5 w-3.5 text-zinc-900" />
                 <span>Your Personalized Starting Track:</span>
               </div>
               <p className="text-[11px] text-zinc-600">

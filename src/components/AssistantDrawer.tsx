@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { askCclAssistant, AssistantMessage } from '../services/cclAssistant';
 import {
-  Sparkles,
+  MessageCircle,
   X,
   Send,
   Bot,
@@ -92,7 +92,7 @@ export const AssistantDrawer: React.FC = () => {
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 bg-white">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-black text-white">
-              <Sparkles className="h-4 w-4" />
+              <MessageCircle className="h-4 w-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">

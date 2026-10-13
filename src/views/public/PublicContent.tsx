@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpRight, ArrowRight, BookOpen, Check, Sparkles, PenTool, Users } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, BookOpen, Check, Briefcase, PenTool, Users } from 'lucide-react';
 import { useApp, type AppView } from '../../context/AppContext';
 export const CHANNEL_URL = 'https://whatsapp.com/channel/0029VbB8jEWEawdyeLVjfb3i';
 export const PHOTOS = {
@@ -18,7 +18,7 @@ export function PublicPage({ eyebrow, title, intro, children, photo, home = fals
     <div className="ccl-hero-visual"><EditorialImage photo={image} eager /><div className="ccl-image-label"><span>{image === 'team' ? 'Learn together. Create with purpose.' : image === 'study' ? 'Let faith guide what you create.' : 'Use your gifts to make a difference in this generation.'}</span><ArrowUpRight size={20} /></div></div>
   </section><div className="ccl-container ccl-page-body">{children}</div></div>;
 }
-const icons = [PenTool, BookOpen, Sparkles, Users, Check, ArrowUpRight];
+const icons = [PenTool, BookOpen, Briefcase, Users, Check, ArrowUpRight];
 export function Cards({ items }: { items: { title: string; text: string }[] }) {
   return <div className="ccl-card-grid">{items.map((item, i) => { const Icon = icons[i % icons.length]; return <article key={item.title} className="ccl-feature-card"><div className="ccl-card-top"><span className="ccl-icon-box"><Icon size={22} strokeWidth={1.5} /></span><span className="ccl-card-number">0{i + 1}</span></div><h3>{item.title}</h3><p>{item.text}</p></article>; })}</div>;
 }

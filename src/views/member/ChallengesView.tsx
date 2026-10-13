@@ -5,7 +5,6 @@ import {
   Clock,
   Users,
   ArrowRight,
-  Sparkles,
   Calendar,
   CheckCircle2,
   Filter,
@@ -92,3 +91,4 @@ export const ChallengesView: React.FC = () => {
     </div>
   );
 };
+

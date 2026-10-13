@@ -5,7 +5,6 @@ import { COMMUNITY_SPACES } from '../../data/seedData';
 import {
   Users,
   MessageSquare,
-  Sparkles,
   Heart,
   Plus,
   Pin,

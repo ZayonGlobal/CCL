@@ -7,7 +7,6 @@ import {
   Search,
   Filter,
   FileText,
-  Sparkles,
   Layers,
   Check,
   Tag,
@@ -159,3 +158,4 @@ export const ResourcesView: React.FC = () => {
     </div>
   );
 };
+

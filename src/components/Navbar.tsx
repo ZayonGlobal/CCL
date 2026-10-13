@@ -10,7 +10,6 @@ import {
   LayoutDashboard,
   User,
   LogOut,
-  Sparkles,
   Search,
 } from 'lucide-react';
 import { UserRole } from '../types';

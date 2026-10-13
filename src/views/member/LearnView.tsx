@@ -10,7 +10,6 @@ import {
   Layers,
   CheckCircle2,
   ArrowRight,
-  Sparkles,
 } from 'lucide-react';
 import { LabId, LearningLevel } from '../../types';
 
@@ -250,3 +249,4 @@ export const LearnView: React.FC = () => {
     </div>
   );
 };
+
