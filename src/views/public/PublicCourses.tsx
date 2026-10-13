@@ -31,7 +31,7 @@ export const PublicCourses: React.FC = () => {
   ];
 
   const filteredCourses = useMemo(() => {
-    return courses.filter((c) => {
+    return courses.filter((c) => c.published && c.ownerId && c.labId === 'ai-foundations').filter((c) => {
       const matchesSearch =
         c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.shortDesc.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -52,14 +52,13 @@ export const PublicCourses: React.FC = () => {
             </div>
 
             <h1 className="font-serif-ccl text-5xl sm:text-6xl lg:text-7xl font-bold text-zinc-950 leading-[1.06] tracking-tight">
-              Curated Course <br />
+              Practical AI <br />
               <span className="italic font-normal">Programs.</span> <br />
-              Taught by Practitioners.
+              Start with the Foundations.
             </h1>
 
             <p className="text-sm sm:text-base text-zinc-600 max-w-lg leading-relaxed">
-              Step into comprehensive video masterclasses covering generative AI, graphic design,
-              short-form sermon recaps, vibe coding, and church media systems—built with zero compromise on Christian integrity.
+              Start with AI Foundations. Browse published courses below and check their lessons and access details. Specialist labs are coming soon; a free account does not unlock every future programme.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -70,7 +69,7 @@ export const PublicCourses: React.FC = () => {
                 }}
                 className="rounded-full bg-black px-7 py-3.5 text-xs sm:text-sm font-semibold text-white hover:bg-zinc-800 transition-colors shadow-sm flex items-center gap-2"
               >
-                <span>Unlock All Courses</span>
+                <span>Create a free account</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
 
@@ -103,53 +102,6 @@ export const PublicCourses: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. METRICS RIBBON */}
-      <section className="border-y border-gray-200/90 bg-white">
-        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0">
-            <div className="flex items-center gap-3 md:justify-center md:border-r border-gray-200">
-              <BookOpen className="h-5 w-5 text-zinc-800 shrink-0" />
-              <div>
-                <div className="text-base font-bold font-sans text-zinc-950">10+ PROGRAMS</div>
-                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-                  DEEP-DIVE COURSES
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 md:justify-center md:border-r border-gray-200">
-              <Video className="h-5 w-5 text-zinc-800 shrink-0" />
-              <div>
-                <div className="text-base font-bold font-sans text-zinc-950">100+ LESSONS</div>
-                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-                  ON-DEMAND VIDEO
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 md:justify-center md:border-r border-gray-200">
-              <Users className="h-5 w-5 text-zinc-800 shrink-0" />
-              <div>
-                <div className="text-base font-bold font-sans text-zinc-950">10,000+</div>
-                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-                  STUDENT GRADUATES
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 md:justify-center">
-              <Award className="h-5 w-5 text-zinc-800 shrink-0" />
-              <div>
-                <div className="text-base font-bold font-sans text-zinc-950">PROJECT-BASED</div>
-                <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-                  PORTFOLIO REVIEW
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* 3. COURSES SEARCH & FILTER SECTION */}
       <section className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 pt-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-200">
@@ -158,7 +110,7 @@ export const PublicCourses: React.FC = () => {
               CATALOG SEARCH
             </div>
             <h2 className="font-serif-ccl text-3xl font-bold text-zinc-950">
-              Find Your Next Masterclass
+              Explore published courses
             </h2>
           </div>
 
@@ -192,6 +144,7 @@ export const PublicCourses: React.FC = () => {
           ))}
         </div>
 
+        {filteredCourses.length === 0 && <p role="status" className="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-zinc-600">No instructor-published course matches this selection yet. Follow our WhatsApp channel for learning updates and free resources.</p>}
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course) => (
@@ -276,7 +229,7 @@ export const PublicCourses: React.FC = () => {
           </h2>
 
           <p className="mx-auto max-w-xl text-xs sm:text-sm text-zinc-300 leading-relaxed">
-            Gain full access to all course programs, practical downloadable project files, and mentor feedback.
+            Create an account to explore your learning workspace. Each course has its own content and access requirements.
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row justify-center gap-3">
@@ -293,7 +246,7 @@ export const PublicCourses: React.FC = () => {
               onClick={() => setCurrentView('public_membership')}
               className="rounded-full border border-zinc-700 bg-zinc-900 px-8 py-3.5 text-xs sm:text-sm font-semibold text-white hover:bg-zinc-800 transition-colors"
             >
-              View Membership Plans
+              About membership
             </button>
           </div>
         </div>
@@ -301,3 +254,4 @@ export const PublicCourses: React.FC = () => {
     </div>
   );
 };
+

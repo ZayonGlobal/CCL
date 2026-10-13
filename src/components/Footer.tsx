@@ -56,7 +56,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button onClick={() => handleNav('live')} className="hover:text-black">
-                  Live Masterclasses
+                  Live learning
                 </button>
               </li>
             </ul>
@@ -74,13 +74,13 @@ export const Footer: React.FC = () => {
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNav('teams')} className="hover:text-black">
-                  Church Seats (CSMC Portal)
+                <button onClick={() => handleNav('public_churches')} className="hover:text-black">
+                  Team learning enquiries
                 </button>
               </li>
               <li>
                 <button onClick={() => handleNav('challenges')} className="hover:text-black">
-                  Monthly Challenges
+                  Creator challenges
                 </button>
               </li>
               <li>
@@ -90,7 +90,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button onClick={() => handleNav('public_membership')} className="hover:text-black">
-                  Membership & Pricing
+                  Membership
                 </button>
               </li>
             </ul>
@@ -104,7 +104,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2.5">
               <li>
                 <button onClick={() => handleNav('verify_certificate')} className="hover:text-black">
-                  Verify Credentials
+                  Certificate verification
                 </button>
               </li>
               <li>
@@ -114,7 +114,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button onClick={() => handleNav('public_contact')} className="hover:text-black">
-                  Contact Curriculum Team
+                  Contact CCL
                 </button>
               </li>
               <li>
@@ -142,3 +142,4 @@ export const Footer: React.FC = () => {
     </footer>
   );
 };
+

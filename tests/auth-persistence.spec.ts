@@ -116,17 +116,17 @@ test('contact preserves entered data on failure and confirms only an acknowledge
     }
   });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Contact Curriculum Team', exact: true }).click();
+  await page.getByRole('button', { name: 'Contact CCL', exact: true }).click();
   await page.getByLabel('Full Name', { exact: true }).fill('Real Visitor');
   await page.getByLabel('Email Address', { exact: true }).fill('visitor@example.com');
   await page.getByLabel('Message', { exact: true }).fill('Please tell me about joining CCL.');
   await page.getByRole('button', { name: 'Send Message', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('Database unavailable');
   await expect(page.getByLabel('Message', { exact: true })).toHaveValue('Please tell me about joining CCL.');
-  await expect(page.getByRole('heading', { name: 'Message Saved Successfully' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Thank you for reaching out' })).toHaveCount(0);
   failing = false;
   await page.getByRole('button', { name: 'Send Message', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Message Saved Successfully' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Thank you for reaching out' })).toBeVisible();
   expect(saved.p_email).toBe('visitor@example.com');
   expect(saved.p_message).toBe('Please tell me about joining CCL.');
 });
