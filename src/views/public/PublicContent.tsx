@@ -11,20 +11,20 @@ type Photo = keyof typeof PHOTOS;
 export function EditorialImage({ photo, className = '', eager = false }: { photo: Photo; className?: string; eager?: boolean }) {
   return <img {...PHOTOS[photo]} className={`ccl-photo ${className}`} width="1536" height="1024" loading={eager ? 'eager' : 'lazy'} fetchPriority={eager ? 'high' : 'auto'} decoding="async" />;
 }
-export function PublicPage({ eyebrow, title, intro, children, photo, home = false }: { eyebrow: string; title: string; intro: string; children: React.ReactNode; photo?: Photo; home?: boolean }) {
+export function PublicPage({ eyebrow, title, intro, children, photo, home = false }: { eyebrow: string; title: React.ReactNode; intro: string; children: React.ReactNode; photo?: Photo; home?: boolean }) {
   const image = photo ?? (/Church|About/.test(eyebrow) ? 'team' : /Membership|Questions/.test(eyebrow) ? 'study' : 'creator');
   return <div className={`ccl-public ${home ? 'ccl-public-home' : ''}`}><section className="ccl-container ccl-hero">
-    <div className="ccl-hero-copy"><p className="ccl-eyebrow"><span className="ccl-status-dot" />{eyebrow}</p><h1>{title}</h1><p className="ccl-intro">{intro}</p><PublicActions /><div className="ccl-hero-notes"><span><Check size={14} />Beginner friendly</span><span><Check size={14} />Faith-led creativity</span></div></div>
-    <div className="ccl-hero-visual"><EditorialImage photo={image} eager /><div className="ccl-image-label"><span>{image === 'team' ? 'Better, together.' : image === 'study' ? 'Purpose before process.' : 'Ideas into useful work.'}</span><ArrowUpRight size={20} /></div><div className="ccl-floating-note"><Sparkles size={18} /><span>Faith. Creativity. Possibility.</span></div></div>
+    <div className="ccl-hero-copy"><p className="ccl-eyebrow"><span className="ccl-status-dot" />{eyebrow}</p><h1>{title}</h1><p className="ccl-intro">{intro}</p><PublicActions primaryLabel={home ? 'Join CCL' : undefined} /><div className="ccl-hero-notes"><span><Check size={14} />Beginner friendly</span><span><Check size={14} />Faith-led creativity</span></div></div>
+    <div className="ccl-hero-visual"><EditorialImage photo={image} eager /><div className="ccl-image-label"><span>{image === 'team' ? 'Learn together. Create with purpose.' : image === 'study' ? 'Let faith guide what you create.' : 'Use your gifts to make a difference in this generation.'}</span><ArrowUpRight size={20} /></div></div>
   </section><div className="ccl-container ccl-page-body">{children}</div></div>;
 }
 const icons = [PenTool, BookOpen, Sparkles, Users, Check, ArrowUpRight];
 export function Cards({ items }: { items: { title: string; text: string }[] }) {
   return <div className="ccl-card-grid">{items.map((item, i) => { const Icon = icons[i % icons.length]; return <article key={item.title} className="ccl-feature-card"><div className="ccl-card-top"><span className="ccl-icon-box"><Icon size={22} strokeWidth={1.5} /></span><span className="ccl-card-number">0{i + 1}</span></div><h3>{item.title}</h3><p>{item.text}</p></article>; })}</div>;
 }
-export function PublicActions({ secondary = 'public_labs', label = 'Explore the labs' }: { secondary?: AppView; label?: string }) {
+export function PublicActions({ secondary = 'public_labs', label = 'Explore the labs', primaryLabel }: { secondary?: AppView; label?: string; primaryLabel?: string }) {
   const { setAuthModalMode, setIsAuthModalOpen, setCurrentView, isAuthenticated } = useApp();
-  return <div className="ccl-actions"><button className="ccl-button ccl-button-primary" onClick={() => { if (isAuthenticated) setCurrentView('dashboard'); else { setAuthModalMode('register'); setIsAuthModalOpen(true); } }}>{isAuthenticated ? 'Open your workspace' : 'Create a free account'}<ArrowUpRight size={17} /></button><button className="ccl-button ccl-button-secondary" onClick={() => setCurrentView(secondary)}>{label}<ArrowRight size={17} /></button></div>;
+  return <div className="ccl-actions"><button className="ccl-button ccl-button-primary" onClick={() => { if (isAuthenticated) setCurrentView('dashboard'); else { setAuthModalMode('register'); setIsAuthModalOpen(true); } }}>{isAuthenticated ? 'Open your workspace' : (primaryLabel || 'Create a free account')}<ArrowUpRight size={17} /></button><button className="ccl-button ccl-button-secondary" onClick={() => setCurrentView(secondary)}>{label}<ArrowRight size={17} /></button></div>;
 }
 export function SectionHeading({ eyebrow, title, text }: { eyebrow: string; title: string; text?: string }) {
   return <div className="ccl-section-heading"><div><p className="ccl-eyebrow">{eyebrow}</p><h2>{title}</h2></div>{text && <p>{text}</p>}</div>;

@@ -50,17 +50,17 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-100 bg-white/95 backdrop-blur-md transition-colors text-zinc-900">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-8 lg:px-12">
+      <div className="mx-auto flex h-24 max-w-[1536px] items-center justify-between px-4 sm:px-8 lg:px-12">
         {/* Brand Logo - Matching Screenshot Exactly */}
         <button
           onClick={() => handleNav('public_home')}
           aria-label="Christian Creator Lab home" className="flex items-center gap-3 text-left group"
         >
-          <BrandLogo className="w-24 sm:w-40" />
+          <BrandLogo className="w-24 sm:w-44" />
         </button>
 
         {/* Center Nav Links - Matching Screenshot */}
-        <nav className="hidden xl:flex items-center gap-6 text-sm font-medium text-zinc-700">
+        <nav className="hidden xl:flex items-center gap-6 text-[15px] font-medium text-zinc-700">
           {navLinks.map((link) => (
             <button
               key={link.label}

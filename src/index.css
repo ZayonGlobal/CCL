@@ -382,3 +382,36 @@ button:disabled { cursor:not-allowed; }
  .ccl-lab-feature,.ccl-membership-feature,.ccl-about-story { grid-template-columns:1fr; padding:28px; gap:28px; }.ccl-about-story { padding:0; }
  .ccl-about-story .ccl-photo { height:280px; }.ccl-lab-grid { grid-template-columns:1fr; }.ccl-membership-price { padding:28px 0 0; border-left:0; border-top:1px solid var(--ccl-line); }.ccl-lab-preview { min-height:175px; }
 }
+
+/* Reference direction: expressive serif display paired with clean Jakarta body text. */
+.ccl-public { --ccl-paper:#fcfcfd; --ccl-ink:#090909; --ccl-muted:#555966; }
+.dark .ccl-public { --ccl-paper:#111215; --ccl-ink:#f5f5f1; --ccl-muted:#b4b4b8; }
+.ccl-container { max-width:1536px; padding-inline:clamp(24px,4vw,64px); }
+.ccl-hero { grid-template-columns:1.4fr 1fr; gap:clamp(40px,6vw,100px); padding-block:64px 72px; }
+.ccl-hero h1,.ccl-public-home .ccl-hero h1 { font-family:var(--font-serif); font-size:clamp(44px,5vw,78px); font-weight:700; letter-spacing:-.035em; line-height:1.12; max-width:850px; }
+.ccl-hero h1 em { font-style:italic; font-weight:400; }
+.ccl-hero .ccl-eyebrow { font-family:monospace; font-size:11px; font-weight:400; letter-spacing:.23em; margin-bottom:28px; }
+.ccl-hero .ccl-status-dot { display:none; }
+.ccl-intro { font-size:16px; line-height:1.85; max-width:600px; margin:28px 0 34px; }
+.ccl-hero-visual { height:580px; border-radius:26px; box-shadow:0 20px 50px #0000000e; }
+.ccl-image-label { left:28px; right:28px; bottom:32px; justify-content:flex-end; text-align:right; font-family:var(--font-serif); font-style:italic; font-weight:500; font-size:22px; line-height:1.35; }
+.ccl-image-label span { max-width:330px; }.ccl-image-label svg { display:none; }
+.ccl-hero .ccl-button { min-height:52px; padding-inline:26px; font-size:13px; }
+.ccl-hero-notes { margin-top:30px; font-size:11px; }
+.ccl-public h2 { font-family:var(--font-serif); font-weight:600; letter-spacing:-.025em; line-height:1.2; }
+.ccl-feature-card h3,.ccl-steps h3,.ccl-course-card h3,.ccl-catalog-empty h3,.ccl-lab-title h3 { font-family:var(--font-serif); font-weight:600; font-size:23px; }
+.ccl-foundation-tag strong { font-family:var(--font-serif); font-style:italic; }
+.ccl-public details summary { font-family:var(--font-sans); }
+.ccl-feature-card p,.ccl-steps p,.ccl-course-card p { font-size:13px; }
+.ccl-section-heading > p { font-size:14px; }
+.ccl-public-footer { background:#f9fafb; }
+@media (max-width:1100px) and (min-width:768px) {
+ .ccl-hero { grid-template-columns:1.15fr 1fr; gap:36px; }.ccl-hero h1,.ccl-public-home .ccl-hero h1 { font-size:52px; }.ccl-hero-visual { height:500px; }.ccl-intro { font-size:14px; }
+}
+@media(max-width:767px) {
+ .ccl-hero { grid-template-columns:1fr; gap:32px; padding-block:40px; }
+ .ccl-hero h1,.ccl-public-home .ccl-hero h1 { font-size:46px; letter-spacing:-.035em; line-height:1.12; }
+ .ccl-hero-visual { height:410px; border-radius:22px; }.ccl-intro { font-size:14px; margin-block:24px 28px; }
+ .ccl-image-label { font-size:23px; }.ccl-hero .ccl-eyebrow { font-size:9px; letter-spacing:.19em; }
+ .ccl-hero .ccl-button { padding-inline:20px; font-size:12px; }
+}

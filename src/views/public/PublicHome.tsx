@@ -4,7 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { PublicPage, PublicActions, Cards, ChannelCard, EditorialImage, SectionHeading } from './PublicContent';
 export const PublicHome: React.FC = () => {
  const { setCurrentView } = useApp();
- return <PublicPage home eyebrow="A space for Christian creators" title="Learn AI. Create with purpose." intro="Turn your ideas into meaningful creative work. Explore AI for design, content, ministry, and business—with faith and human judgment at the heart of it.">
+ return <PublicPage home eyebrow="Faith × Creativity × Impact" title={<>Create with<br /><em>Purpose.</em><br />Build for Eternity.</>} intro="Christian Creator Lab equips you with the skills, tools, and community to create meaningful content, grow your influence, and make a lasting impact for God’s Kingdom.">
   <div className="ccl-focus-strip"><span>Built around your real work</span><div><span>Church media</span><span>Design & content</span><span>Business ideas</span><span>Responsible AI</span></div></div>
   <section><SectionHeading eyebrow="From possibility to practice" title="What will you create next?" text="Start with a task that matters to you. Learn how AI can help you think, draft, and make it better." /><Cards items={[
     { title: 'Media that carries the message', text: 'Plan service announcements, develop flyer ideas, write event invitations, and shape social content that serves your church.' },
