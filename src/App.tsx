@@ -1,3 +1,4 @@
+const MentorDashboardView = React.lazy(() => import('./views/mentor/MentorDashboardView').then(m => ({ default: m.MentorDashboardView })));
 import { LoadingSymbol } from './components/LoadingSymbol';
 import { ChannelPopup } from './components/ChannelPopup';
 import React from 'react';
@@ -13,37 +14,38 @@ import { AuthModal } from './components/AuthModal';
 import { OnboardingModal } from './components/OnboardingModal';
 
 // Public views
-import { PublicHome } from './views/public/PublicHome';
-import { PublicAbout } from './views/public/PublicAbout';
-import { PublicLabs } from './views/public/PublicLabs';
-import { PublicCourses } from './views/public/PublicCourses';
-import { PublicMembership } from './views/public/PublicMembership';
-import { PublicChurches } from './views/public/PublicChurches';
-import { PublicFAQ, PublicContact } from './views/public/PublicFAQ';
+const PublicHome = React.lazy(() => import('./views/public/PublicHome').then(m => ({ default: m.PublicHome })));
+const PublicAbout = React.lazy(() => import('./views/public/PublicAbout').then(m => ({ default: m.PublicAbout })));
+const PublicLabs = React.lazy(() => import('./views/public/PublicLabs').then(m => ({ default: m.PublicLabs })));
+const PublicCourses = React.lazy(() => import('./views/public/PublicCourses').then(m => ({ default: m.PublicCourses })));
+const PublicMembership = React.lazy(() => import('./views/public/PublicMembership').then(m => ({ default: m.PublicMembership })));
+const PublicChurches = React.lazy(() => import('./views/public/PublicChurches').then(m => ({ default: m.PublicChurches })));
+const PublicFAQ = React.lazy(() => import('./views/public/PublicFAQ').then(m => ({ default: m.PublicFAQ })));
+const PublicContact = React.lazy(() => import('./views/public/PublicFAQ').then(m => ({ default: m.PublicContact })));
 
 // Member views
-import { DashboardView } from './views/member/DashboardView';
-import { LearnView } from './views/member/LearnView';
-import { LabsView } from './views/member/LabsView';
-import { CourseDetailView } from './views/member/CourseDetailView';
-import { CoursePlayerView } from './views/member/CoursePlayerView';
-import { LiveView } from './views/member/LiveView';
-import { ChallengesView } from './views/member/ChallengesView';
-import { ChallengeDetailView } from './views/member/ChallengeDetailView';
-import { ProjectsView } from './views/member/ProjectsView';
-import { CommunityView } from './views/member/CommunityView';
-import { ResourcesView } from './views/member/ResourcesView';
-import { PromptLibraryView } from './views/member/PromptLibraryView';
-import { AIToolsView } from './views/member/AIToolsView';
-import { OpportunitiesView } from './views/member/OpportunitiesView';
-import { MyGrowthView } from './views/member/MyGrowthView';
-import { CreatorProfileView } from './views/member/CreatorProfileView';
-import { TeamsView } from './views/member/TeamsView';
-import { CertificateVerifyView } from './views/member/CertificateVerifyView';
+const DashboardView = React.lazy(() => import('./views/member/DashboardView').then(m => ({ default: m.DashboardView })));
+const LearnView = React.lazy(() => import('./views/member/LearnView').then(m => ({ default: m.LearnView })));
+const LabsView = React.lazy(() => import('./views/member/LabsView').then(m => ({ default: m.LabsView })));
+const CourseDetailView = React.lazy(() => import('./views/member/CourseDetailView').then(m => ({ default: m.CourseDetailView })));
+const CoursePlayerView = React.lazy(() => import('./views/member/CoursePlayerView').then(m => ({ default: m.CoursePlayerView })));
+const LiveView = React.lazy(() => import('./views/member/LiveView').then(m => ({ default: m.LiveView })));
+const ChallengesView = React.lazy(() => import('./views/member/ChallengesView').then(m => ({ default: m.ChallengesView })));
+const ChallengeDetailView = React.lazy(() => import('./views/member/ChallengeDetailView').then(m => ({ default: m.ChallengeDetailView })));
+const ProjectsView = React.lazy(() => import('./views/member/ProjectsView').then(m => ({ default: m.ProjectsView })));
+const CommunityView = React.lazy(() => import('./views/member/CommunityView').then(m => ({ default: m.CommunityView })));
+const ResourcesView = React.lazy(() => import('./views/member/ResourcesView').then(m => ({ default: m.ResourcesView })));
+const PromptLibraryView = React.lazy(() => import('./views/member/PromptLibraryView').then(m => ({ default: m.PromptLibraryView })));
+const AIToolsView = React.lazy(() => import('./views/member/AIToolsView').then(m => ({ default: m.AIToolsView })));
+const OpportunitiesView = React.lazy(() => import('./views/member/OpportunitiesView').then(m => ({ default: m.OpportunitiesView })));
+const MyGrowthView = React.lazy(() => import('./views/member/MyGrowthView').then(m => ({ default: m.MyGrowthView })));
+const CreatorProfileView = React.lazy(() => import('./views/member/CreatorProfileView').then(m => ({ default: m.CreatorProfileView })));
+const TeamsView = React.lazy(() => import('./views/member/TeamsView').then(m => ({ default: m.TeamsView })));
+const CertificateVerifyView = React.lazy(() => import('./views/member/CertificateVerifyView').then(m => ({ default: m.CertificateVerifyView })));
 
 // Admin views
-import { InstructorDashboardView } from './views/instructor/InstructorDashboardView';
-import { AdminDashboardView } from './views/admin/AdminDashboardView';
+const InstructorDashboardView = React.lazy(() => import('./views/instructor/InstructorDashboardView').then(m => ({ default: m.InstructorDashboardView })));
+const AdminDashboardView = React.lazy(() => import('./views/admin/AdminDashboardView').then(m => ({ default: m.AdminDashboardView })));
 
 export const AppContent: React.FC = () => {
   const { currentView, isAuthenticated, theme, authLoading, dataLoading, dataError, setDataError, courses, challenges, currentUser, selectedCourseId } = useApp();
@@ -60,6 +62,7 @@ export const AppContent: React.FC = () => {
       return <div className="bg-white border rounded-3xl p-8"><h1 className="text-2xl font-serif-ccl">Lessons are coming soon</h1><p className="mt-2 text-sm">This course has no published lessons yet.</p></div>;
     if (currentView === 'challenge_detail' && !challenges.length)
       return <div className="bg-white border rounded-3xl p-8">No challenges are open yet.</div>;
+    if (currentView === 'mentor' && !['mentor','administrator','super_admin'].includes(currentUser.role)) return <div>Mentor access is required.</div>;
     if (currentView === 'instructor' && !['instructor','administrator','super_admin'].includes(currentUser.role)) return <div>Instructor access is required.</div>;
     if (currentView === 'admin' && !['administrator','super_admin'].includes(currentUser.role))
       return <div className="bg-white border rounded-3xl p-8">Administrator access is required.</div>;
@@ -83,6 +86,8 @@ export const AppContent: React.FC = () => {
         return <PublicContact />;
 
       // Member Pages
+      case 'mentor':
+        return <MentorDashboardView />;
       case 'dashboard':
         return <DashboardView />;
       case 'learn':
@@ -143,7 +148,7 @@ export const AppContent: React.FC = () => {
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <main className="flex-1">
-            {renderView()}
+            <React.Suspense fallback={<div className="flex justify-center py-20"><LoadingSymbol label="Opening your Creator Lab…"/></div>}>{renderView()}</React.Suspense>
           </main>
           <Footer />
         </div>
@@ -154,7 +159,7 @@ export const AppContent: React.FC = () => {
           <div className="flex-1 flex flex-col min-w-0 bg-[#f7f8fa] dark:bg-[#090a0f] text-zinc-900 dark:text-[#f8fafc]">
             <MemberTopBar />
             <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-              {renderView()}
+              <React.Suspense fallback={<div className="flex justify-center py-20"><LoadingSymbol label="Opening your Creator Lab…"/></div>}>{renderView()}</React.Suspense>
             </main>
           </div>
           <AppBottomNav />

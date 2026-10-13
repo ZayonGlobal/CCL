@@ -1,3 +1,5 @@
+import { roleHome } from '../services/roleHome';
+import { recoveryGatewayKey } from '../config/recoveryPublic';
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { UserProfile, Course, Challenge, ChallengeSubmission, Project, Post, PostCategory, PromptItem, ResourceItem, Certificate, LiveSession, Opportunity, MembershipTier } from '../types';
@@ -21,6 +23,7 @@ export type AppView =
   | 'public_privacy'
   | 'public_terms'
   // Member pages
+  | 'mentor'
   | 'dashboard'
   | 'learn'
   | 'labs'
@@ -113,11 +116,16 @@ function useAppState() {
       if (switched) { clearMemberData(); setDataLoading(Boolean(session)); }
       try {
         if (session) {
+          if (!session.user.email_confirmed_at) { await backend().auth.signOut(); throw new Error('Verify your email before entering your Creator Lab.'); }
           const result = await loadProfile(session.user);
           if (!mounted || generation !== authGeneration.current) return;
           setCurrentUser(result.user); setAuthenticated(true);
           if (event === 'PASSWORD_RECOVERY' || new URLSearchParams(window.location.search).get('recovery') === '1') { setIsPasswordRecovery(true); setIsAuthModalOpen(true); }
-          else if (switched) { navigate('dashboard'); setIsOnboardingOpen(!result.onboarded); }
+          else if (switched) {
+            try { sessionStorage.removeItem('ccl-pending-verification'); } catch {}
+            setIsAuthModalOpen(false); navigate(roleHome(result.user.role));
+            setIsOnboardingOpen(!result.onboarded && result.user.role === 'student');
+          }
           await Promise.all([fetchCatalog(), fetchMemberData(session.user.id)]);
         } else {
           clearMemberData(); navigate('public_home'); await fetchCatalog();
@@ -163,6 +171,8 @@ function useAppState() {
     }
     if (view === 'instructor' && currentUser.role !== 'instructor' && !isAdmin(currentUser.role)) { setDataError('Instructor access is required.'); return; }
     if (view === 'admin' && !isAdmin(currentUser.role)) { setDataError('Administrator access is required.'); return; }
+    if (view === 'dashboard') view = roleHome(currentUser.role);
+    if (view === 'mentor' && currentUser.role !== 'mentor' && !isAdmin(currentUser.role)) { setDataError('Mentor access is required.'); return; }
     navigate(view); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const navigateWithParam = (view: AppView, id?: string) => {
@@ -191,21 +201,26 @@ function useAppState() {
       options: { emailRedirectTo: window.location.origin, data: { first_name: firstName.trim(), last_name: lastName.trim() } },
     });
     if (error) throw error;
-    if (data.session) setIsAuthModalOpen(false);
-    return Boolean(data.session);
+    if (data.user?.identities?.length === 0) throw new Error('This email is already registered. Please sign in or reset your password.');
+    if (data.session) { await backend().auth.signOut(); throw new Error('Email confirmation must be enabled before creating an account. Please contact CCL support.'); }
+    return false;
   };
   const logout = () => perform(async () => {
     const { error } = await backend().auth.signOut(); if (error) throw error;
     activeUser.current = null; ++authGeneration.current; clearMemberData(); navigate('public_home'); await fetchCatalog();
   });
   const resetPassword = async (email: string) => {
-    const { error } = await backend().auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/?recovery=1` });
-    if (error) throw error;
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ccl-password-recovery`, {
+      method:'POST', headers:{'Content-Type':'application/json', apikey:import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization:`Bearer ${recoveryGatewayKey}`},
+      body:JSON.stringify({email:email.trim().toLowerCase()}), signal:AbortSignal.timeout(20000),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.sent) throw new Error(result.error || 'The recovery email could not be sent. Please try again.');
   };
   const changePassword = async (password: string) => {
     const { error } = await backend().auth.updateUser({ password }); if (error) throw error;
     window.history.replaceState({}, '', window.location.pathname);
-    setIsPasswordRecovery(false); setIsAuthModalOpen(false);
+    setIsPasswordRecovery(false); setIsAuthModalOpen(false); navigate(roleHome(currentUser.role));
   };
   const updateCurrentUser = (updates: Partial<UserProfile>, onboarded?: boolean) => perform(async () => {
     const id = requireUser();
@@ -357,3 +372,4 @@ export function useApp() {
   if (!context) throw new Error('useApp must be inside AppProvider');
   return context;
 }
+

@@ -1,3 +1,4 @@
+import { roleHome } from '../services/roleHome';
 import React, { useState } from 'react';
 import { useApp, AppView } from '../context/AppContext';
 import {
@@ -23,7 +24,7 @@ export const AppBottomNav: React.FC = () => {
   const [moreOpen, setMoreOpen] = useState(false);
 
   const mainTabs: { label: string; view: AppView; icon: React.ElementType }[] = [
-    { label: 'Home', view: 'dashboard', icon: Home },
+    { label: 'Workspace', view: roleHome(currentUser.role), icon: Home },
     { label: 'Learn', view: 'learn', icon: BookOpen },
     { label: 'Live', view: 'live', icon: Tv },
     { label: 'Challenges', view: 'challenges', icon: Trophy },
@@ -39,6 +40,8 @@ export const AppBottomNav: React.FC = () => {
     { label: 'Church / Team', view: 'teams', icon: Building2 },
   ];
 
+  if (currentUser.role === 'instructor') moreItems.push({label:'Instructor Studio',view:'instructor',icon:BookOpen});
+  if (currentUser.role === 'mentor') moreItems.push({label:'Mentor workspace',view:'mentor',icon:Users});
   if (
     currentUser.role === 'administrator' ||
     currentUser.role === 'super_admin'
@@ -128,3 +131,4 @@ export const AppBottomNav: React.FC = () => {
     </>
   );
 };
+

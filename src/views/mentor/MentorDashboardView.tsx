@@ -1,0 +1,12 @@
+import React from 'react';
+import { ArrowUpRight, MessageSquare, Library, BookOpen } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
+import { WorkspaceHeader, WorkspaceStat } from '../../components/WorkspaceHeader';
+export const MentorDashboardView: React.FC = () => {
+ const {currentUser,posts,resources,courses,setCurrentView}=useApp();
+ return <div className="space-y-6 pb-20"><WorkspaceHeader eyebrow="Mentor workspace" title={`Guide with purpose, ${currentUser.firstName||'Mentor'}.`} description="Support creators through practical conversations, thoughtful feedback, and shared learning." action={<button className="bg-black text-white rounded-full px-5 py-3 text-sm font-semibold" onClick={()=>setCurrentView('community')}>Open community</button>}/>
+ <div className="grid grid-cols-2 lg:grid-cols-3 gap-4"><WorkspaceStat label="Community discussions" value={posts.length}/><WorkspaceStat label="Learning resources" value={resources.length}/><WorkspaceStat label="Published courses" value={courses.filter(c=>c.published).length}/></div>
+ <div className="grid md:grid-cols-3 gap-4">{[{title:'Join the conversation',description:'Answer questions and encourage creators in the community.',view:'community' as const,icon:MessageSquare},{title:'Share useful resources',description:'Find material to support your conversations.',view:'resources' as const,icon:Library},{title:'Explore the curriculum',description:'Stay familiar with what creators are learning.',view:'learn' as const,icon:BookOpen}].map(item=><button key={item.view} onClick={()=>setCurrentView(item.view)} className="workspace-card text-left hover:shadow-md transition-shadow"><item.icon className="h-5 w-5 text-zinc-500"/><h2 className="font-semibold text-sm mt-5 flex items-center justify-between">{item.title}<ArrowUpRight className="h-4 w-4"/></h2><p className="text-xs text-zinc-500 leading-relaxed mt-2">{item.description}</p></button>)}</div>
+ <section className="workspace-card"><h2 className="font-serif-ccl text-2xl font-bold">Recent conversations</h2>{posts.slice(0,5).map(p=><button key={p.id} onClick={()=>setCurrentView('community')} className="flex justify-between w-full gap-3 text-left border-t border-gray-200 py-4 mt-3"><span className="text-sm font-medium">{p.title}</span><span className="text-xs text-zinc-500 shrink-0">{p.commentsCount} replies</span></button>)}{!posts.length&&<p className="text-sm text-zinc-500 mt-4">New community conversations will appear here.</p>}</section>
+ </div>;
+};

@@ -1,3 +1,4 @@
+import { roleHome } from '../services/roleHome';
 import { BrandLogo } from './BrandLogo';
 import React from 'react';
 import { useApp, AppView } from '../context/AppContext';
@@ -24,7 +25,7 @@ export const AppSidebar: React.FC = () => {
   const { currentView, setCurrentView, currentUser, setIsAssistantOpen } = useApp();
 
   const primaryNavItems: { label: string; view: AppView; icon: React.ElementType }[] = [
-    { label: 'Home', view: 'dashboard', icon: Home },
+    { label: 'Workspace', view: roleHome(currentUser.role), icon: Home },
     { label: 'Learn', view: 'learn', icon: BookOpen },
     { label: 'Live', view: 'live', icon: Radio },
     { label: 'Labs', view: 'labs', icon: LayoutGrid },
@@ -46,11 +47,11 @@ export const AppSidebar: React.FC = () => {
     currentUser.role === 'super_admin';
 
   return (
-    <aside className="hidden lg:flex w-64 flex-col justify-between bg-[#0e0f12] text-white p-6 select-none shrink-0 min-h-screen border-r border-[#1a1c22]">
-      <div className="space-y-10">
+    <aside className="hidden lg:flex w-60 flex-col justify-between bg-[#0e0f12] text-white p-6 select-none shrink-0 h-screen sticky top-0 overflow-y-auto border-r border-[#1a1c22]">
+      <div className="space-y-6">
         {/* Top Branding - Matching Screenshot */}
-        <button aria-label="CCL dashboard" className="rounded-lg bg-white p-3" onClick={() => setCurrentView('dashboard')}>
-          <BrandLogo className="w-44" />
+        <button aria-label="CCL dashboard" className="rounded-lg py-3" onClick={() => setCurrentView(roleHome(currentUser.role))}>
+          <BrandLogo inverse className="w-40" />
         </button>
 
         {/* Primary Navigation - Matching 5 items in image */}
@@ -59,7 +60,7 @@ export const AppSidebar: React.FC = () => {
             const Icon = item.icon;
             // Check active state
             const isActive =
-              (item.view === 'dashboard' && currentView === 'dashboard') ||
+              (item.view === roleHome(currentUser.role) && currentView === roleHome(currentUser.role)) ||
               (item.view === 'learn' && (currentView === 'learn' || currentView === 'course_player' || currentView === 'course_detail')) ||
               (item.view === 'live' && currentView === 'live') ||
               ((item.view === 'labs' || item.view === 'public_labs') && (currentView === 'labs' || currentView === 'public_labs' || currentView === 'resources' || currentView === 'prompts' || currentView === 'tools')) ||
@@ -89,7 +90,7 @@ export const AppSidebar: React.FC = () => {
         {/* Secondary Navigation */}
         <div className="pt-4 border-t border-zinc-800/60 space-y-1">
           <div className="px-4 pb-2 text-[10px] font-mono uppercase tracking-widest text-zinc-400">
-            More Ecosystem
+            Explore CCL
           </div>
           {secondaryNavItems.map((item) => {
             const Icon = item.icon;
@@ -110,25 +111,8 @@ export const AppSidebar: React.FC = () => {
             );
           })}
 
-          {(isAdministrator || currentUser.role === 'instructor') && <button onClick={() => setCurrentView('instructor')} className={`w-full rounded-xl px-4 py-3 text-left text-sm font-semibold ${currentView === 'instructor' ? 'bg-white/10 text-white' : 'text-zinc-300 hover:bg-white/5'}`}>Instructor Studio</button>}
-          {isAdministrator && (
-            <button
-              onClick={() => setCurrentView('admin')}
-              className={`flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-medium transition-colors ${
-                currentView === 'admin'
-                  ? 'text-amber-300 bg-amber-500/10'
-                  : 'text-zinc-300 hover:text-white hover:bg-white/[0.03]'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Shield className="h-3.5 w-3.5 text-amber-400" />
-                <span>Admin CMS</span>
-              </div>
-              <span className="text-[9px] font-mono bg-amber-500/20 text-amber-300 px-1 py-0.5 rounded">
-                MGMT
-              </span>
-            </button>
-          )}
+          {isAdministrator && <button onClick={() => setCurrentView('instructor')} className={`w-full rounded-xl px-4 py-3 text-left text-sm font-semibold ${currentView === 'instructor' ? 'bg-white/10 text-white' : 'text-zinc-300 hover:bg-white/5'}`}>Instructor Studio</button>}
+
         </div>
       </div>
 
@@ -147,3 +131,4 @@ export const AppSidebar: React.FC = () => {
     </aside>
   );
 };
+

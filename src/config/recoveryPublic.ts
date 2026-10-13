@@ -1,0 +1,2 @@
+// Public anonymous JWT used only for the Edge Function gateway. This is not a service-role key.
+export const recoveryGatewayKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2bnJham5yaWNraHJxbG1nZXVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzYyODMsImV4cCI6MjEwNjg1MjI4M30.w0x9_RqE-PA3ap0pHLMW0uV4olbdPHJCllO5obt1F8A';

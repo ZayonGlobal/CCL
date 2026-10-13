@@ -1,3 +1,4 @@
+import { roleHome } from '../services/roleHome';
 import { BrandLogo } from './BrandLogo';
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
@@ -34,7 +35,7 @@ export const MemberTopBar: React.FC = () => {
 
   return (
     <header className="w-full flex items-center justify-between gap-4 py-4 px-6 sm:px-8 border-b border-gray-200/70 bg-[#f7f8fa]">
-      <button className="lg:hidden shrink-0" aria-label="CCL dashboard" onClick={() => setCurrentView('dashboard')}><BrandLogo className="w-24" /></button>
+      <button className="lg:hidden shrink-0" aria-label="CCL dashboard" onClick={() => setCurrentView(roleHome(currentUser.role))}><BrandLogo className="w-24" /></button>
       {/* Search Input Box */}
       <div className="hidden sm:block flex-1 min-w-0 max-w-xl">
         <button
@@ -202,3 +203,4 @@ export const MemberTopBar: React.FC = () => {
     </header>
   );
 };
+

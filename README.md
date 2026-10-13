@@ -1,79 +1,94 @@
 # Christian Creator Lab
 
-A React/Vite learning platform with Supabase authentication and persistent creator data.
+React/Vite learning platform with Supabase authentication and persistent creator data.
 
-Production site: https://ccl-delta.vercel.app. Its dedicated Supabase project is `rvnrajnrickhrqlmgeuh`, accessed through the CCL Zayon DEv connection. The database migrations and public frontend connection values are installed. Auth redirect configuration and real confirmation/reset email delivery still need verification before public registration is considered ready.
+Production: https://ccl-delta.vercel.app. Dedicated Supabase project: `rvnrajnrickhrqlmgeuh`.
 
-## Run locally
+## Development
 
-Use Node 22 or newer. Run `npm ci`, copy `.env.example` to `.env.local`, fill in the two public Supabase values, then run `npm run dev`. `npm run lint` checks TypeScript; `npm run build` produces `dist`.
+Use Node 22 or newer. Run `npm ci`, copy `.env.example` to `.env.local`, and configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. These are public frontend connection values. Never put service-role keys, SMTP passwords, or other secrets in `VITE_` variables.
 
-Registration is disabled when no backend is configured. Users are never automatically signed in and cannot select an administrator role or activate a paid membership themselves.
+- `npm run dev`: development server.
+- `npm run lint`: TypeScript checks.
+- `npm run build`: production bundle in `dist`.
+- `npm run test:ui`: browser authentication and persistence tests.
+- `npm run test:db`: schema/RLS tests using a PostgreSQL-compatible engine.
+- `node tests/channel-signup.mjs`: popup validation and SMTP handling checks.
 
-## Configure the dedicated Supabase backend
+Browser tests mock the Supabase HTTP boundary. They do not send real emails. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` when using a system Chromium. Install a Playwright browser for normal local runs.
 
-1. Use the dedicated CCL project above. For a separate installation, create a dedicated project; do not apply CCL's schema to an unrelated site without intentionally choosing shared authentication.
-2. On a new installation, apply the SQL files under `supabase/migrations` in filename order. They create the tables, signup trigger, grants, validated contact RPC and row-level security policies, and restrict API execution of Supabase's internal RLS event-trigger helper. Alternatively link this directory with the Supabase CLI and push its migrations. Both migrations are already applied to the production project.
-3. Set the Auth **Site URL** to `https://ccl-delta.vercel.app`. Add `https://ccl-delta.vercel.app` and `https://ccl-delta.vercel.app/?recovery=1` to the permitted redirect URLs. For local testing, add `http://localhost:3000` and `http://localhost:3000/?recovery=1`.
-4. Keep email confirmations enabled, use a minimum password length of 8, and configure a production SMTP provider for confirmation and password reset emails. Supabase's built-in development mail service may only deliver to authorized addresses and has rate limits. The app never reports a mail request as successful if the API rejects it.
-5. For another deployment, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to Vercel's Preview and Production environments, then rebuild. These values are already saved for CCL's Production, Preview and Development environments. Use a publishable key, never a service-role or secret key. Vite replaces these variables at build time.
-6. Register and confirm your own account. Bootstrap the first platform administrator using the SQL below, with the real registered user ID copied from Supabase Auth. Do not accept administrator roles from signup metadata.
+## Authentication
 
-```sql
-update public.ccl_accounts
-set role = 'administrator'
-where user_id = 'REPLACE_WITH_YOUR_AUTH_USER_UUID';
-```
+Configure the Supabase Site URL as `https://ccl-delta.vercel.app`, and allow that origin and `https://ccl-delta.vercel.app/?recovery=1` as redirects. Configure a production SMTP provider and keep email confirmation enabled. Use a minimum password length of 8.
 
-The administrator can then add courses, manage member roles and membership plans, review projects, and read contact, team and membership requests from CCL Operations. Only platform administrators have those permissions. Mentor and instructor accounts do not gain platform-wide access automatically.
+Signup requires two matching passwords. Each password field has a visibility toggle. The verification dialog remains open and persists across reloads, accepts the signup OTP, and has a resend cooldown. No dashboard session is created by the app before verification.
 
-## Data model and behavior
+**Activate code emails:** replace **Authentication → Emails → Confirm sign up** with `supabase/templates/confirmation.html`, subject **Your verification code | Christian Creator Lab**. The hosted template must include `{{ .Token }}`. Updating the repository file does not update Supabase's hosted template. Existing verification links still establish a verified session; the new template uses code entry.
 
-- `ccl_accounts`: protected role and membership access.
-- `ccl_profiles`: account-specific identity, preferences, and onboarding.
-- `ccl_catalog`: published courses, challenges, resources, prompts, live sessions and opportunities. New installations have an empty catalog rather than fabricated courses or learners. Course rows require a matching `payload.id`; use the administration form to add a free course and YouTube lesson. Other catalog types can be curated in Supabase's dashboard with the shapes in `src/types/index.ts`.
-- `ccl_enrollments` / `ccl_lesson_progress`: owned enrollments and per-lesson completion. Unknown lessons and enrollment into inaccessible paid content are rejected by the database.
-- `ccl_records`: real projects, challenge submissions, posts, replies, lesson discussion, live chat, assignments, team requests and membership requests. Author identity is derived on the server from the signed-in account. Projects and assignments are private to their owner and platform administrators. Community posts and challenge submissions are shared with signed-in members.
-- `ccl_bookmarks` / `ccl_reactions`: durable saved resources and one reaction of each type per account per post.
-- `ccl_certificates`: administrator-issued credentials only; demo credentials are never awarded or verified.
-- `ccl_inquiries`: contact and church requests. Public visitors can submit through a validated RPC but cannot read submissions. Requests are saved; this integration does not send notifications to the CCL team or accept payments.
+Recovery calls the JWT-protected `ccl-password-recovery` Supabase Edge Function. Server-provided service credentials perform a single-email lookup and apply persistent email/IP request limits before requesting a recovery link from Supabase Auth. Missing accounts receive a clear message. Successful requests are shown only after Auth accepts the send.
 
-Data submissions show success only after the database acknowledges the write. Shared conversations refresh every 30 seconds and when the browser gains focus. The current first-page community load is limited to the most recent 1,000 records; add pagination before scaling beyond that. Team workspaces are requested for administrator provisioning; invitation emails and seat management are not yet implemented.
+Source: `supabase/functions/ccl-password-recovery/index.ts`. Database setup: `supabase/sql/recovery_account_lookup.sql`. The private rate-limit table has RLS and no visitor/member access. The lookup RPC is callable only by the service role. The project public anonymous gateway JWT in `src/config/recoveryPublic.ts` is a public key, not a service-role credential. Update that public configuration if changing projects.
 
-Google login is hidden until `VITE_GOOGLE_AUTH_ENABLED=true` and the Google provider is configured in Supabase. The Gemini assistant remains a local help engine: do not enable a `VITE_GEMINI_API_KEY`, which would expose that credential in the browser bundle.
+## Role workspaces
 
-## Verification
+Roles come from protected `ccl_accounts` columns, never editable user metadata. New accounts start as students. `zayoncreatives@gmail.com` is the verified first administrator.
 
-Run `npm run test:db` for the PostgreSQL-compatible schema and access-control suite. Install Chromium with `npx playwright install chromium`, then run `npm run test:ui` for signup confirmation, invalid-password handling, save/reload persistence, logout and contact failure handling. Browser tests emulate the Supabase HTTP boundary; they do not verify a hosted Supabase project or real email delivery.
+| Role | Default workspace |
+|---|---|
+| Student | Creator dashboard |
+| Mentor | Mentor workspace |
+| Instructor | Instructor Studio |
+| Organization administrator | Organization workspace |
+| Administrator / super administrator | Management dashboard |
 
-Before activating registration, test confirmation email delivery and password recovery at the actual public origin, then test signup, onboarding, logout/login, project submission, saved progress and contact requests. Check that a second account cannot access the first account's private rows and that only administrators can change roles, plans, course publication or review statuses.
+Home/workspace navigation uses the same role mapping as sign-in. Administrator management is organized into overview, members and access, courses, project reviews, inquiries, and team requests. Member roles and plans are assigned by platform administrators. Accounts cannot demote themselves through the management UI.
 
-The migrations have been exercised with a local PostgreSQL-compatible engine for signup triggers, private-row isolation, forged metadata, enrollment restrictions, lesson validation, signed author identity, anonymous read denial, enquiry validation and administrator management. A rollback-only test also passed on the live database for signup triggers, safe default roles, private-row isolation, privilege protection, signed author identity and inquiry submissions; it leaves no test users or records. The public catalog API is accessible and anonymous profile reads are denied. Live Auth reports email signup enabled with confirmation required. Confirmation and password-reset email delivery still need verification at the public origin.
+Instructors create drafts, manage descriptions/access tiers, add modules and YouTube lessons, and publish/unpublish their own courses. Catalog `owner_id` is authoritative. Database policies prevent instructors from changing other owners' courses or assigning themselves roles. Administrators can manage all courses. Course deletion remains administrator-only.
 
-The security advisors report only the intentionally public `ccl_submit_inquiry` SECURITY DEFINER RPC. It validates inputs, caps repeat requests, and returns no private inquiry data. This is reviewed against https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable; direct anonymous table access remains denied.
+Mentor workspaces organize community conversations and learning resources. Organization workspaces show the current user's team requests and learning links. Team invitations, seat provisioning, and shared organization data management are not implemented; the UI does not claim those capabilities.
 
-## Instructor Studio
+## Data and access
 
-Registered members start as students. An administrator assigns the instructor role through Admin Operations → Members and access. Instructors open Instructor Studio from the desktop sidebar or the profile menu on mobile. They can create drafts, edit course descriptions and access tiers, add/remove modules and YouTube lessons, edit notes/transcripts, and publish/unpublish their own courses. Administrators can edit all courses through the same Studio.
+Apply the SQL files in `supabase/migrations` in order for a new installation, then the recovery SQL setup and Edge Function. Do not install CCL's schema into an unrelated project without intentionally sharing authentication.
 
-The catalog owner_id column is authoritative; profile metadata and payload instructor names do not grant access. Row-level policies prevent students from authoring, instructors from editing other owners' courses or other catalog types, and ownership reassignment by instructors. Course deletion remains admin-only. Existing ownerless courses remain administrator-managed. Instructor Studio currently previews course details; full learner playback uses the normal enrollment flow.
+- `ccl_accounts` / `ccl_profiles`: protected roles and owned identity/preferences.
+- `ccl_catalog`: courses, challenges, resources, prompts, live sessions and opportunities.
+- `ccl_enrollments` / `ccl_lesson_progress`: owned enrollment and lesson completion.
+- `ccl_records`: projects, assignments, submissions, posts, replies and requests. Author identity is assigned on the server. Private projects and assignments are visible to their owner and administrators; community posts and challenge submissions are shared with signed-in members.
+- `ccl_bookmarks` / `ccl_reactions`: saved items and reactions.
+- `ccl_certificates`: administrator-issued credentials.
+- `ccl_inquiries`: public contact submissions; direct anonymous reads are denied.
 
-The first administrator must already have a registered, verified account. Assign its protected ccl_accounts.role by the matching auth.users ID, never by user metadata. The requested first-admin email has not yet registered as of this implementation; no account was fabricated or verification bypassed.
+Forms confirm success only after a database acknowledgment. Shared discussions refresh every 30 seconds and on browser focus. The community load currently caps at the latest 1,000 records; add pagination for larger communities.
 
-Verification: TypeScript and production build; database tests include two instructors, private drafts, owner-only updates, publishing/unpublishing, ownership spoofing, role revocation, students denied authoring, and administrator oversight. Hosted ownership checks ran inside a rolled-back transaction. Browser verification remains blocked by the environment's Chromium startup crash.
+Google sign-in remains hidden unless `VITE_GOOGLE_AUTH_ENABLED=true` and the provider is configured. The assistant uses the local curriculum help engine. Do not put a Gemini API key in frontend variables.
 
-Supabase security review also reports disabled leaked-password protection; dashboard guidance: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection . The intentional contact-RPC security-definer advisories are documented above.
+## Popup welcome email
 
-## WhatsApp signup popup and contact
+Contact: +234 806 168 8292, cclabsupport@gmail.com.
+WhatsApp channel: https://whatsapp.com/channel/0029VbB8jEWEawdyeLVjfb3i.
 
-Contact details: +234 806 168 8292; cclabsupport@gmail.com; https://whatsapp.com/channel/0029VbB8jEWEawdyeLVjfb3i . Contact form submissions continue to appear in Admin Operations → Contact inquiries.
+The popup triggers after 12 seconds of engagement on top-edge exit or 55% page scroll. It pauses while other dialogs or inputs are active, traps focus, supports Escape, and dismisses for the browser session. Submissions save to administrator inquiries and send a welcome email before redirecting. Send failures remain visible with a link to continue manually.
 
-The global popup triggers after 12 seconds of engagement, on a desktop top-edge exit or after scrolling 55% down a page. It waits while other dialogs or inputs are active, supports Escape/focus trapping, and dismisses for the browser session. It collects name/email, an optional WhatsApp number, and explicit consent for one welcome email. No PDF is advertised. Successful submissions redirect to the fixed WhatsApp channel; this does not automatically follow the channel for the visitor.
+The server endpoint `/api/channel-signup` uses these server-only Production variables:
 
-POST /api/channel-signup validates and saves a contact inquiry with subject "WhatsApp channel signup" and structured phone/consent/source information in its message. Existing database throttling limits submissions to three per email per hour. The browser never gets a Brevo credential. The API does not send an email if saving fails.
+| Variable | Value |
+|---|---|
+| `SMTP_HOST` | `smtp-relay.brevo.com` |
+| `SMTP_PORT` | `587` |
+| `SMTP_USER` | Brevo SMTP login |
+| `SMTP_PASSWORD` | Full Brevo SMTP key |
+| `SMTP_FROM_EMAIL` | Verified sender, default `zayoncreatives@gmail.com` |
+| `SMTP_FROM_NAME` | Christian Creator Lab |
 
-### Activate welcome email sending
+Save passwords as Secrets, then redeploy. The popup uses SMTP rather than the old Brevo API-key connection. Supabase uses its own hosted SMTP configuration for authentication mail. Credentials are never sent to the browser. Earlier popup signups are not automatically emailed again.
 
-Add BREVO_API_KEY as a server-only Vercel environment variable for production (and preview if desired), then redeploy. Generate it in Brevo → SMTP & API → API keys, not SMTP keys. Do not prefix it with VITE_. The verified sender defaults to zayoncreatives@gmail.com; optionally set BREVO_SENDER_EMAIL to a different verified sender. Reply-to is cclabsupport@gmail.com. Without this key, signup storage and redirect work, but no welcome email is sent. There is no automatic backfill of earlier signups. Failed provider requests are logged without subscriber details. SMTP settings in Supabase apply to authentication emails, not this endpoint.
+The welcome email mentions the AI Bible and other resources in the WhatsApp channel. No PDF is attached by the application.
 
-Validation: node tests/channel-signup.mjs uses mock providers and does not send any email.
+## Theme and loading
+
+Light and dark themes share readable surfaces, focus states, controls and status colors. Workspace headers and cards adapt to both themes. Logos become white in dark layouts. The shared CCL symbol loader shows during genuine pending actions and has a static reduced-motion alternative.
+
+## Verification limits
+
+TypeScript, production build, 13 browser tests, private recovery permissions, lookup/rate-limit assertions, and the live missing-account recovery response were checked. Hosted signup template activation and positive email delivery require separate verification. Deployment status depends on access to the intended Vercel team; do not treat a Git push alone as proof of a READY deployment.

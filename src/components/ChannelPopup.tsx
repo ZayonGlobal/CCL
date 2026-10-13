@@ -42,7 +42,7 @@ export const ChannelPopup: React.FC = () => {
   }catch(e){setError(e instanceof Error?e.message:'Please try again.');}finally{setBusy(false);}};
   const input='w-full rounded-xl border border-zinc-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-black';
   return <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={close}>
-    <div ref={box} role="dialog" aria-modal="true" aria-labelledby="channel-title" className="relative w-full max-w-sm max-h-[90dvh] overflow-y-auto rounded-2xl border border-zinc-200 p-5 sm:p-6 font-sans shadow-2xl" style={{background:'#fff',color:'#111'}} onClick={e=>e.stopPropagation()}>
+    <div ref={box} role="dialog" aria-modal="true" aria-labelledby="channel-title" className="bg-white text-zinc-900 relative w-full max-w-sm max-h-[90dvh] overflow-y-auto rounded-2xl border border-zinc-200 p-5 sm:p-6 font-sans shadow-2xl"  onClick={e=>e.stopPropagation()}>
       <button aria-label="Close WhatsApp invitation" disabled={busy} onClick={close} className="absolute right-4 top-4 rounded-full border border-zinc-200 p-2"><X className="h-5 w-5"/></button>
       <BrandLogo className="w-32 pr-2" />
       <span className="mt-4 inline-block text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-zinc-500">We have a gift for you</span>
@@ -50,11 +50,11 @@ export const ChannelPopup: React.FC = () => {
       <p className="mt-2 text-xs leading-relaxed text-zinc-500">Join our WhatsApp channel for AI tips and creative resources.</p>
       {saved ? <p role="status" className="mt-6">{error || "Your details are saved. Opening WhatsApp…"} <a href={WHATSAPP_CHANNEL} className="underline">Tap here if it doesn’t open.</a></p> : <form onSubmit={submit} className="mt-4 space-y-3">
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-        <label className="block text-xs font-medium">Name<input required maxLength={150} autoComplete="name" placeholder="Your full name" className={input+' mt-1'} style={{background:'#fff',color:'#111'}} value={name} onChange={e=>setName(e.target.value)}/></label>
-        <label className="block text-xs font-medium">Email<input required type="email" maxLength={254} autoComplete="email" placeholder="you@example.com" className={input+' mt-1'} style={{background:'#fff',color:'#111'}} value={email} onChange={e=>setEmail(e.target.value)}/></label>
-        <label className="block text-xs font-medium">WhatsApp number<input type="tel" maxLength={30} autoComplete="tel" placeholder="+234…" className={input+' mt-1'} style={{background:'#fff',color:'#111'}} value={phone} onChange={e=>setPhone(e.target.value)}/></label>
+        <label className="block text-xs font-medium">Name<input required maxLength={150} autoComplete="name" placeholder="Your full name" className={input+' mt-1'}  value={name} onChange={e=>setName(e.target.value)}/></label>
+        <label className="block text-xs font-medium">Email<input required type="email" maxLength={254} autoComplete="email" placeholder="you@example.com" className={input+' mt-1'}  value={email} onChange={e=>setEmail(e.target.value)}/></label>
+        <label className="block text-xs font-medium">WhatsApp number<input type="tel" maxLength={30} autoComplete="tel" placeholder="+234…" className={input+' mt-1'}  value={phone} onChange={e=>setPhone(e.target.value)}/></label>
         <div className="hidden" aria-hidden="true"><input tabIndex={-1} autoComplete="off" value={website} onChange={e=>setWebsite(e.target.value)} aria-label="Website"/></div>
-        <button disabled={busy} className="w-full rounded-full py-3 text-xs font-semibold disabled:opacity-50" style={{background:'#111',color:'#fff'}}>{busy && <LoadingSymbol inline inverse label="Saving…" />}{busy?'Saving…':<span className="inline-flex items-center gap-2">Get free access<ArrowUpRight className="h-4 w-4"/></span>}</button>
+        <button disabled={busy} className="bg-black text-white w-full rounded-full py-3 text-xs font-semibold disabled:opacity-50" >{busy && <LoadingSymbol inline inverse label="Saving…" />}{busy?'Saving…':<span className="inline-flex items-center gap-2">Get free access<ArrowUpRight className="h-4 w-4"/></span>}</button>
         <p className="text-[10px] leading-relaxed text-center text-zinc-500">Submit to save your details and receive a welcome email with the channel link. You’ll continue to WhatsApp.</p>
       </form>}
     </div>

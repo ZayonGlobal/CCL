@@ -13,7 +13,7 @@ const test = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? baseTest.extend({
 // A provisioned live project is still required for real Auth and SMTP checks.
 const userId = '11111111-1111-4111-8111-111111111111';
 const user = { id: userId, email: 'creator@example.com', aud: 'authenticated', role: 'authenticated',
-  app_metadata: {}, user_metadata: { first_name: 'Real', last_name: 'Creator' }, identities: [], created_at: new Date().toISOString() };
+  app_metadata: {}, user_metadata: { first_name: 'Real', last_name: 'Creator' }, identities: [{id:userId}], email_confirmed_at:new Date().toISOString(), created_at: new Date().toISOString() };
 const profile = { user_id: userId, profile: { firstName: 'Real', lastName: 'Creator' }, onboarding_completed: true };
 const course = { id: 'test-course', slug: 'test-course', title: 'Test Learning Course', shortDesc: 'A real saved enrollment',
   thumbnail: '/avatar.svg', labId: 'ai-foundations', labName: 'AI Foundations', level: 'Explorer', difficulty: 'Beginner',
@@ -64,7 +64,7 @@ async function mockBackend(page: any) {
 
 async function signIn(page: any) {
   await page.getByRole('button', { name: 'Join CCL →', exact: true }).click();
-  await page.getByRole('button', {name:'Already have an account? Sign in'}).click();
+  await page.getByRole('dialog').getByRole('button', {name:'Sign in',exact:true}).click();
   await page.getByLabel('Email address', {exact:true}).fill('creator@example.com');
   await page.getByLabel('Password', {exact:true}).fill('a-valid-password');
   await page.getByRole('button',{name:'Sign in',exact:true}).click();
@@ -85,14 +85,10 @@ test('signup uses entered identity and shows email confirmation without a fake l
   const request = await sent;
   expect(request.postDataJSON().data.first_name).toBe('Actual');
   expect(request.postDataJSON().data.role).toBeUndefined();
-  await expect(page.getByRole('status')).toContainText('Check your email');
-  await expect(page.getByRole('heading', { name: 'Account created successfully' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Verify your email' })).toBeVisible();
+  await expect(page.getByLabel('Email verification code')).toBeVisible();
   await expect(page.getByLabel('First name', { exact: true })).toHaveCount(0);
   await expect(page.getByLabel('Password', { exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Continue to sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Welcome back', exact: true })).toBeVisible();
-  await expect(page.getByLabel('Email address', { exact: true })).toHaveValue('actual@example.com');
-  await expect(page.getByLabel('Password', { exact: true })).toHaveValue('');
   await expect(page.getByRole('heading',{name:'Welcome, Real.'})).toHaveCount(0);
   await expect(page.getByText('Demo Experience Role')).toHaveCount(0);
 });
@@ -100,7 +96,7 @@ test('signup uses entered identity and shows email confirmation without a fake l
 test('password login rejects invalid credentials',async ({page})=>{
   await mockBackend(page); await page.goto('/');
   await page.getByRole('button',{name:'Join CCL →',exact:true}).click();
-  await page.getByRole('button',{name:'Already have an account? Sign in'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Sign in',exact:true}).click();
   await page.getByLabel('Email address',{exact:true}).fill(user.email);
   await page.getByLabel('Password',{exact:true}).fill('wrong-password');
   await page.getByRole('button',{name:'Sign in',exact:true}).click();
@@ -164,3 +160,4 @@ test('saved enrollment and new project survive reload and signout clears identit
   await expect(page.getByText('Saved Creator Project',{exact:true})).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+

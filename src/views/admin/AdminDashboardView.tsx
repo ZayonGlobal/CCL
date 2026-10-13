@@ -1,88 +1,43 @@
-import { LoadingSymbol } from '../../components/LoadingSymbol';
 import React, { useEffect, useState } from 'react';
+import { RefreshCw, Search, ArrowUpRight, Users, BookOpen, Inbox, ClipboardCheck } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { backend, errorMessage, safeUrl } from '../../services/supabase';
-import { LABS } from '../../data/seedData';
-import type { Course, MembershipTier, UserRole } from '../../types';
-
+import { backend, errorMessage } from '../../services/supabase';
+import { LoadingSymbol } from '../../components/LoadingSymbol';
+import { WorkspaceHeader, WorkspaceStat } from '../../components/WorkspaceHeader';
+import type { UserRole, MembershipTier } from '../../types';
+type Tab='overview'|'members'|'courses'|'reviews'|'inquiries'|'requests';
+type Member={user_id:string;role:UserRole;membership_tier:MembershipTier;profile:Record<string,string>};
+const tabs: {id:Tab;label:string}[]=[{id:'overview',label:'Overview'},{id:'members',label:'Members & access'},{id:'courses',label:'Courses'},{id:'reviews',label:'Project reviews'},{id:'inquiries',label:'Inquiries'},{id:'requests',label:'Team requests'}];
+const human=(value:string)=>value.replaceAll('_',' ').replace(/^\w/,c=>c.toUpperCase());
 export const AdminDashboardView: React.FC = () => {
-  const { currentUser, courses, projects, dataRecords, publishCatalog, updateProjectReview, setDataError } = useApp();
-  const [members, setMembers] = useState<any[]>([]);
-  const [inquiries, setInquiries] = useState<any[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [lab, setLab] = useState('ai-foundations');
-  const [video, setVideo] = useState('');
-  const [published, setPublished] = useState(false);
-  const [feedback, setFeedback] = useState<Record<string,string>>({});
-  const load = async () => {
-    setLoading(true);
-    try {
-    const [accounts, profiles, messages] = await Promise.all([
-      backend().from('ccl_accounts').select('*'), backend().from('ccl_profiles').select('*'),
-      backend().from('ccl_inquiries').select('*').order('created_at', { ascending: false }).limit(100),
-    ]);
-    for (const result of [accounts, profiles, messages]) if (result.error) throw result.error;
-    setMembers((accounts.data || []).map(a => ({ ...a, profile: (profiles.data || []).find(p => p.user_id === a.user_id)?.profile || {} })));
-    setInquiries(messages.data || []);
-    } finally { setLoading(false); }
-  };
-  useEffect(() => { void load().catch(error => setDataError(errorMessage(error))); }, []);
-  const createCourse = async (e: React.FormEvent) => {
-    e.preventDefault(); if (busy) return; setBusy(true);
-    try {
-      let videoId = video.trim();
-      if (videoId.includes('http')) {
-        const url = new URL(safeUrl(videoId)!);
-        videoId = url.hostname === 'youtu.be' ? url.pathname.slice(1) : url.searchParams.get('v') || url.pathname.split('/').pop() || '';
-      }
-      if (videoId && !/^[A-Za-z0-9_-]{11}$/.test(videoId)) throw new Error('Enter a valid YouTube video link or ID.');
-      if (published && !videoId) throw new Error('Add a lesson video before publishing.');
-      const id = `course_${crypto.randomUUID()}`; const lessonId = `lesson_${crypto.randomUUID()}`;
-      const labData = LABS.find(l => l.id === lab)!;
-      const course: Course = { id, slug: id, title: title.trim(), shortDesc: description.trim(), fullDesc: description.trim(),
-        thumbnail: '/avatar.svg', labId: labData.id, labName: labData.name, level: 'Explorer', difficulty: 'Beginner',
-        durationMinutes: 0, lessonCount: videoId ? 1 : 0, membershipAccess: 'free', learningOutcomes: [], prerequisites: [], published,
-        instructor: { name: `${currentUser.firstName} ${currentUser.lastName}`, title: 'CCL instructor', avatar: currentUser.avatar, bio: '' },
-        modules: videoId ? [{ id: `module_${id}`, courseId: id, title: 'Getting started', description: '', order: 1,
-          lessons: [{ id: lessonId, moduleId: `module_${id}`, courseId: id, title: title.trim(), description: description.trim(),
-            youtubeVideoId: videoId, durationMinutes: 0, transcript: '', notes: '', resources: [], order: 1 }] }] : [],
-        projectsOverview: '', faq: [] };
-      const saved = await publishCatalog('course', course, published);
-      if (saved) { setTitle(''); setDescription(''); setVideo(''); }
-    } catch (error) { setDataError(errorMessage(error)); }
-    finally { setBusy(false); }
-  };
-  const updateMember = async (userId: string, changes: { role?: UserRole; membership_tier?: MembershipTier }) => {
-    if (busy) return; setBusy(true);
-    try {
-      const { error } = await backend().from('ccl_accounts').update(changes).eq('user_id', userId);
-      if (error) throw error; await load();
-    } catch (error) { setDataError(errorMessage(error)); }
-    finally { setBusy(false); }
-  };
-  const section = 'rounded-3xl bg-white border p-6 sm:p-8 space-y-4';
-  return <div className="space-y-7 pb-20 max-w-5xl mx-auto">
-    <div><p className="text-xs uppercase tracking-widest text-zinc-500">Platform administration</p><h1 className="text-4xl font-serif-ccl font-bold mt-2">CCL Operations</h1></div>
-    {(loading || busy) && <LoadingSymbol inline label={loading ? "Loading admin data…" : "Saving changes…"} />}
-    <div className="grid grid-cols-3 gap-3">{[['Members',members.length],['Courses',courses.length],['Inquiries',inquiries.length]].map(([label,value]) => <div key={label} className={section}><span className="text-xs text-zinc-500">{label}</span><p className="text-3xl font-serif-ccl">{value}</p></div>)}</div>
-    <section className={section}><h2 className="font-serif-ccl text-2xl">Add a course</h2>
-      <form onSubmit={createCourse} className="space-y-4">
-        <div><label htmlFor="course-title" className="text-sm">Title</label><input id="course-title" required maxLength={200} value={title} onChange={e => setTitle(e.target.value)} className="w-full border rounded-xl p-3 text-sm" /></div>
-        <div><label htmlFor="course-description" className="text-sm">Description</label><textarea id="course-description" required maxLength={5000} value={description} onChange={e => setDescription(e.target.value)} className="w-full border rounded-xl p-3 text-sm" /></div>
-        <div><label htmlFor="course-lab" className="text-sm">Learning lab</label><select id="course-lab" value={lab} onChange={e => setLab(e.target.value)} className="w-full border rounded-xl p-3 text-sm">{LABS.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}</select></div>
-        <div><label htmlFor="course-video" className="text-sm">YouTube lesson link</label><input id="course-video" value={video} onChange={e => setVideo(e.target.value)} className="w-full border rounded-xl p-3 text-sm" /></div>
-        <label className="flex gap-2 text-sm"><input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} />Publish now</label>
-        <button disabled={busy} className="rounded-full bg-black text-white px-6 py-3 text-sm">{busy && <LoadingSymbol inline inverse label="Saving…" />}{busy ? 'Saving…' : 'Save course'}</button>
-      </form>
-      {courses.map(c => <div key={c.id} className="border-t pt-3 flex justify-between gap-3 text-sm"><span>{c.title} · {c.published ? 'Published' : 'Draft'}</span><button disabled={busy || (!c.published && !c.modules.some(m => m.lessons.length))} onClick={() => publishCatalog('course', c, !c.published)}>{c.published ? 'Unpublish' : 'Publish'}</button></div>)}
-    </section>
-    <section className={section}><h2 className="font-serif-ccl text-2xl">Members and access</h2>{members.map(m => <div key={m.user_id} className="border-t pt-4 grid sm:grid-cols-3 gap-3 text-sm"><div><strong>{m.profile.firstName} {m.profile.lastName}</strong><p className="text-xs text-zinc-500 break-all">{m.user_id}</p></div><select aria-label="Member role" disabled={busy || m.user_id===currentUser.id} value={m.role} onChange={e => updateMember(m.user_id, { role: e.target.value as UserRole })}>{['student','mentor','instructor','organization_admin','administrator'].map(r => <option key={r}>{r}</option>)}</select><select aria-label="Membership plan" disabled={busy} value={m.membership_tier} onChange={e => updateMember(m.user_id, { membership_tier: e.target.value as MembershipTier })}>{['free','creator','builder','pro','teams'].map(t => <option key={t}>{t}</option>)}</select></div>)}</section>
-    <section className={section}><h2 className="font-serif-ccl text-2xl">Project reviews</h2>{projects.map(p => <div key={p.id} className="border-t pt-4 space-y-3 text-sm"><strong>{p.title}</strong><p>{p.description}</p><input aria-label="Review feedback" placeholder="Feedback for the creator" value={feedback[p.id] || ''} onChange={e => setFeedback(v => ({ ...v, [p.id]: e.target.value }))} className="w-full border rounded-xl p-3" /><div className="flex gap-4"><button onClick={() => updateProjectReview(p.id,'approved',feedback[p.id])}>Approve</button><button onClick={() => updateProjectReview(p.id,'needs_revision',feedback[p.id])}>Request revision</button></div></div>)}</section>
-    <section className={section}><h2 className="font-serif-ccl text-2xl">Contact inquiries</h2>{inquiries.map(i => <div key={i.id} className="border-t pt-4 text-sm space-y-1"><strong>{i.subject}</strong><p>{i.name} · {i.email}</p><p className="whitespace-pre-wrap text-zinc-600">{i.message}</p></div>)}{!inquiries.length && <p className="text-sm text-zinc-500">No inquiries yet.</p>}</section>
-    <section className={section}><h2 className="font-serif-ccl text-2xl">Team and membership requests</h2>{dataRecords.filter(r => ['team_request','membership_request'].includes(r.kind)).map(r => <div key={r.id} className="border-t pt-3 text-sm"><strong>{r.payload.creator?.name}</strong><p>{r.payload.organizationName || r.payload.requestedTier}</p><p className="text-zinc-500">{r.payload.details}</p></div>)}</section>
-  </div>;
+ const {currentUser,courses,projects,dataRecords,publishCatalog,updateProjectReview,setDataError,setCurrentView}=useApp();
+ const [tab,setTab]=useState<Tab>('overview');const [members,setMembers]=useState<Member[]>([]);const [inquiries,setInquiries]=useState<any[]>([]);
+ const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);const [query,setQuery]=useState('');const [feedback,setFeedback]=useState<Record<string,string>>({});
+ const [notice,setNotice]=useState('');const [loadError,setLoadError]=useState('');
+ const load=async()=>{setLoading(true);setLoadError('');try{const [accounts,profiles,messages]=await Promise.all([backend().from('ccl_accounts').select('*'),backend().from('ccl_profiles').select('*'),backend().from('ccl_inquiries').select('*').order('created_at',{ascending:false}).limit(100)]);
+  for(const r of [accounts,profiles,messages])if(r.error)throw r.error;
+  setMembers((accounts.data||[]).map(a=>({...a,profile:(profiles.data||[]).find(p=>p.user_id===a.user_id)?.profile||{}})));setInquiries(messages.data||[]);
+ }catch(e){setLoadError(errorMessage(e));}finally{setLoading(false);}};
+ useEffect(()=>{void load();},[]);
+ const updateMember=async(id:string,changes:{role?:UserRole;membership_tier?:MembershipTier})=>{if(busy)return;setBusy(true);setNotice('');try{const {error}=await backend().from('ccl_accounts').update(changes).eq('user_id',id);if(error)throw error;await load();setNotice('Member access updated.');}catch(e){setDataError(errorMessage(e));}finally{setBusy(false);}};
+ const toggleCourse=async(course:typeof courses[number])=>{if(busy)return;setBusy(true);try{if(await publishCatalog('course',course,!course.published))setNotice(course.published?'Course unpublished.':'Course published.');}finally{setBusy(false);}};
+ const review=async(id:string,status:'approved'|'needs_revision')=>{if(busy)return;setBusy(true);try{if(await updateProjectReview(id,status,feedback[id]||''))setNotice('Project review saved.');}finally{setBusy(false);}};
+ const requests=dataRecords.filter(r=>['team_request','membership_request'].includes(r.kind));
+ const filtered=members.filter(m=>`${m.profile.firstName||''} ${m.profile.lastName||''} ${m.user_id} ${m.role}`.toLowerCase().includes(query.toLowerCase()));
+ return <div className="space-y-6 pb-20">
+  <WorkspaceHeader eyebrow="Platform administration" title="CCL management" description={`Welcome, ${currentUser.firstName||'Isaac'}. Manage access, support creators, and keep the learning experience moving.`} action={<button onClick={()=>setCurrentView('instructor')} className="rounded-full bg-black text-white px-5 py-3 text-sm font-semibold inline-flex items-center gap-2">Course Studio<ArrowUpRight className="h-4 w-4"/></button>}/>
+  <div className="grid grid-cols-2 xl:grid-cols-4 gap-4"><WorkspaceStat label="Registered members" value={loading?'—':members.length}/><WorkspaceStat label="Published courses" value={courses.filter(c=>c.published).length}/><WorkspaceStat label="Projects awaiting review" value={projects.filter(p=>p.status!=='approved').length}/><WorkspaceStat label="Latest inquiries" value={loading?'—':inquiries.length}/></div>
+  <div className="flex flex-wrap items-center justify-between gap-3"><div role="tablist" aria-label="Admin sections" className="workspace-tabs">{tabs.map(t=><button key={t.id} role="tab" id={`admin-tab-${t.id}`} aria-selected={tab===t.id} tabIndex={tab===t.id?0:-1} onKeyDown={e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const index=tabs.findIndex(item=>item.id===tab);const next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(index+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;setTab(tabs[next].id);document.getElementById(`admin-tab-${tabs[next].id}`)?.focus();}} aria-controls={`admin-panel-${t.id}`} onClick={()=>{setTab(t.id);setNotice('');}}>{t.label}</button>)}</div><button disabled={loading||busy} onClick={()=>void load()} aria-label="Refresh admin data" className="rounded-full border border-gray-200 p-2.5">{loading?<LoadingSymbol inline label="Refreshing…"/>:<RefreshCw className="h-4 w-4"/>}</button></div>
+  {notice&&<p role="status" className="rounded-xl bg-emerald-50 text-emerald-900 p-4 text-sm">{notice}</p>}
+  {loadError&&<div role="alert" className="rounded-xl bg-rose-50 text-rose-800 p-4 text-sm">{loadError}<button className="underline ml-3" onClick={()=>void load()}>Try again</button></div>}
+  {busy&&<LoadingSymbol inline label="Saving changes…"/>}
+  <div role="tabpanel" id={`admin-panel-${tab}`} aria-labelledby={`admin-tab-${tab}`}>
+  {tab==='overview'&&<div className="grid lg:grid-cols-2 gap-5"><section className="workspace-card"><h2 className="font-serif-ccl text-2xl font-bold">Your management tools</h2><div className="grid sm:grid-cols-2 gap-3 mt-5">{[{tab:'members' as Tab,label:'Members & access',detail:'Assign roles and membership plans',icon:Users},{tab:'courses' as Tab,label:'Course catalog',detail:'Manage drafts and published courses',icon:BookOpen},{tab:'reviews' as Tab,label:'Project reviews',detail:'Give feedback on creator projects',icon:ClipboardCheck},{tab:'inquiries' as Tab,label:'Contact inquiries',detail:'Follow up on messages and signups',icon:Inbox}].map(item=><button key={item.tab} onClick={()=>setTab(item.tab)} className="text-left rounded-2xl border border-gray-200 p-4 hover:bg-zinc-50"><item.icon className="h-5 w-5 text-zinc-500"/><p className="text-sm font-semibold mt-4">{item.label}</p><p className="text-xs text-zinc-500 mt-1 leading-relaxed">{item.detail}</p></button>)}</div></section><section className="workspace-card"><h2 className="font-serif-ccl text-2xl font-bold">Recent messages</h2>{loading?<div className="py-8"><LoadingSymbol label="Loading inquiries…"/></div>:inquiries.slice(0,4).map(i=><button onClick={()=>setTab('inquiries')} key={i.id} className="block w-full text-left border-t border-gray-200 mt-4 pt-4"><p className="text-sm font-medium">{i.subject}</p><p className="text-xs text-zinc-500 mt-1">{i.name} · {i.email}</p></button>)}{!loading&&!inquiries.length&&<p className="text-sm text-zinc-500 mt-5">No messages yet.</p>}</section></div>}
+  {tab==='members'&&<section className="workspace-card"><div className="flex flex-wrap justify-between items-center gap-4"><h2 className="font-serif-ccl text-2xl font-bold">Members & access</h2><label className="relative block"><Search className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500"/><input aria-label="Search members" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search name, ID or role" className="border border-gray-200 rounded-xl py-3 pl-10 pr-3 text-sm w-full sm:w-64"/></label></div>{loading?<div className="py-8"><LoadingSymbol label="Loading members…"/></div>:filtered.map(m=><div key={m.user_id} className="border-t border-gray-200 py-5 mt-3 grid md:grid-cols-[1.4fr_1fr_1fr] gap-4 items-center"><div><p className="text-sm font-semibold">{[m.profile.firstName,m.profile.lastName].filter(Boolean).join(' ')||'Creator'}</p><p className="text-xs text-zinc-500 mt-1">{human(m.role)}{m.user_id===currentUser.id?' · Your account':''}</p><p className="text-[10px] text-zinc-500 mt-1 break-all">{m.user_id}</p></div><label className="text-xs text-zinc-500">Role<select disabled={busy||m.user_id===currentUser.id||m.role==='super_admin'} value={m.role} onChange={e=>void updateMember(m.user_id,{role:e.target.value as UserRole})} className="mt-1 w-full rounded-xl border border-gray-200 p-3 text-sm">{['student','mentor','instructor','organization_admin','administrator',...(m.role==='super_admin'?['super_admin']:[])].map(r=><option key={r} value={r}>{human(r)}</option>)}</select></label><label className="text-xs text-zinc-500">Membership<select disabled={busy} value={m.membership_tier} onChange={e=>void updateMember(m.user_id,{membership_tier:e.target.value as MembershipTier})} className="mt-1 w-full rounded-xl border border-gray-200 p-3 text-sm">{['free','creator','builder','pro','teams'].map(t=><option key={t} value={t}>{human(t)}</option>)}</select></label></div>)}{!loading&&!filtered.length&&<p className="text-sm text-zinc-500 mt-6">No members match your search.</p>}</section>}
+  {tab==='courses'&&<section className="workspace-card"><div className="flex flex-wrap justify-between gap-4"><h2 className="font-serif-ccl text-2xl font-bold">Course catalog</h2><button onClick={()=>setCurrentView('instructor')} className="rounded-full bg-black text-white px-4 py-2 text-sm font-semibold">Create or edit courses</button></div>{courses.map(c=><div key={c.id} className="border-t border-gray-200 py-5 mt-3 flex flex-wrap items-center justify-between gap-4"><div><h3 className="text-sm font-semibold">{c.title}</h3><p className="text-xs text-zinc-500 mt-1">{c.published?'Published':'Draft'} · {c.lessonCount} lessons · {c.labName}</p></div><button disabled={busy||(!c.published&&!c.modules.some(m=>m.lessons.length))} onClick={()=>void toggleCourse(c)} className="rounded-full border border-gray-200 px-4 py-2 text-sm disabled:opacity-50">{c.published?'Unpublish':'Publish'}</button></div>)}{!courses.length&&<p className="mt-6 text-sm text-zinc-500">Create your first course in Course Studio.</p>}</section>}
+  {tab==='reviews'&&<section className="workspace-card"><h2 className="font-serif-ccl text-2xl font-bold">Project reviews</h2>{projects.map(p=><div key={p.id} className="border-t border-gray-200 py-5 mt-4 space-y-3"><div className="flex justify-between gap-3"><h3 className="text-sm font-semibold">{p.title}</h3><span className="text-xs text-zinc-500">{human(p.status)}</span></div><p className="text-sm text-zinc-600">{p.description}</p><textarea aria-label={`Feedback for ${p.title}`} placeholder="Helpful, specific feedback for the creator" value={feedback[p.id]||''} onChange={e=>setFeedback(v=>({...v,[p.id]:e.target.value}))} className="w-full rounded-xl border border-gray-200 p-3 text-sm"/><div className="flex flex-wrap gap-3"><button disabled={busy} onClick={()=>void review(p.id,'approved')} className="rounded-full bg-black text-white px-4 py-2 text-sm">Approve</button><button disabled={busy} onClick={()=>void review(p.id,'needs_revision')} className="rounded-full border border-gray-200 px-4 py-2 text-sm">Request revision</button></div></div>)}{!projects.length&&<p className="mt-6 text-sm text-zinc-500">Creator projects will appear here for review.</p>}</section>}
+  {tab==='inquiries'&&<section className="workspace-card"><h2 className="font-serif-ccl text-2xl font-bold">Contact inquiries</h2>{inquiries.map(i=>{let text=i.message;try{const parsed=JSON.parse(i.message);text=parsed.phone?`WhatsApp: ${parsed.phone}`:'Joined through the WhatsApp signup form.';}catch{}return <article key={i.id} className="border-t border-gray-200 py-5 mt-4 space-y-2"><p className="text-sm font-semibold">{i.subject}</p><p className="text-xs text-zinc-500">{i.name} · <a href={`mailto:${i.email}`} className="underline">{i.email}</a></p><p className="text-sm text-zinc-600 whitespace-pre-wrap break-words">{text}</p></article>;})}{!loading&&!inquiries.length&&<p className="mt-6 text-sm text-zinc-500">No inquiries yet.</p>}</section>}
+  {tab==='requests'&&<section className="workspace-card"><h2 className="font-serif-ccl text-2xl font-bold">Team & membership requests</h2>{requests.map(r=><article key={r.id} className="border-t border-gray-200 py-5 mt-4"><h3 className="text-sm font-semibold">{r.payload.organizationName||human(r.payload.requestedTier||'Workspace request')}</h3><p className="text-xs text-zinc-500 mt-1">{r.payload.creator?.name||'Creator'} · {human(r.status)}</p><p className="text-sm text-zinc-600 mt-3">{r.payload.details}</p></article>)}{!requests.length&&<p className="mt-6 text-sm text-zinc-500">Team and membership requests will appear here.</p>}</section>}
+  </div>
+ </div>;
 };
-

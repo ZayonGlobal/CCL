@@ -1,3 +1,4 @@
+import { WorkspaceHeader, WorkspaceStat } from '../../components/WorkspaceHeader';
 import { LoadingSymbol } from '../../components/LoadingSymbol';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
@@ -56,9 +57,9 @@ export const InstructorDashboardView: React.FC = () => {
     } catch (e) { setError(errorMessage(e)); }
     finally { setBusy(false); }
   };
-  return <div className="max-w-5xl mx-auto space-y-6 pb-20">
-    <div className="flex flex-wrap justify-between items-center gap-4"><div><p className="text-xs uppercase tracking-widest text-zinc-500">Teach with purpose</p><h1 className="text-4xl font-serif-ccl font-bold mt-2">Instructor Studio</h1><p className="text-sm text-zinc-500 mt-2">{admin ? 'Manage all CCL courses.' : 'Create and manage your own courses.'}</p></div><button disabled={busy || !!editing} onClick={startNew} className="rounded-full bg-black text-white px-6 py-3 text-sm font-semibold disabled:opacity-50">New course</button></div>
-    <div className="grid grid-cols-3 gap-3">{[['Courses', owned.length], ['Published', owned.filter(c => c.published).length], ['Drafts', owned.filter(c => !c.published).length]].map(([label, count]) => <div key={label} className="bg-white border rounded-2xl p-4"><p className="text-xs text-zinc-500">{label}</p><p className="text-3xl font-serif-ccl mt-1">{count}</p></div>)}</div>
+  return <div className="space-y-6 pb-20">
+    <WorkspaceHeader eyebrow="Teach with purpose" title="Instructor Studio" description={admin ? 'Manage courses, organize lessons, and publish learning experiences.' : 'Build your curriculum, prepare lessons, and share what you know.'} action={<button disabled={busy || !!editing} onClick={startNew} className="rounded-full bg-black text-white px-6 py-3 text-sm font-semibold disabled:opacity-50">New course</button>}/>
+    <div className="grid grid-cols-3 gap-3">{[['Courses',owned.length],['Published',owned.filter(c=>c.published).length],['Drafts',owned.filter(c=>!c.published).length]].map(([label,count])=><WorkspaceStat key={label} label={String(label)} value={count}/>)}</div>
     {error && <p role="alert" className="rounded-xl bg-rose-50 text-rose-800 p-4 text-sm">{error}</p>}
     {notice && <p role="status" className="rounded-xl bg-emerald-50 text-emerald-900 p-4 text-sm">{notice}</p>}
     {editing ? <form onSubmit={e => { e.preventDefault(); void save(editing, editing.published); }} className="bg-white border rounded-3xl p-5 sm:p-8 space-y-5">
