@@ -415,3 +415,12 @@ button:disabled { cursor:not-allowed; }
  .ccl-image-label { font-size:23px; }.ccl-hero .ccl-eyebrow { font-size:9px; letter-spacing:.19em; }
  .ccl-hero .ccl-button { padding-inline:20px; font-size:12px; }
 }
+.ccl-prompt-builder { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.ccl-form-fields { display:flex; flex-direction:column; gap:20px; }
+.ccl-form-fields label { font-size:12px; font-weight:600; }
+.ccl-form-fields :is(input,textarea,select) { display:block; width:100%; border:1px solid var(--ccl-line); border-radius:10px; padding:12px; background:var(--ccl-paper); color:var(--ccl-ink); font-size:13px; margin-top:8px; }
+.ccl-prompt-output { white-space:pre-wrap; overflow-wrap:anywhere; font-family:var(--font-sans); color:var(--ccl-muted); font-size:13px; line-height:1.8; margin-bottom:24px; }
+@media(max-width:767px) { .ccl-prompt-builder { grid-template-columns:1fr; } }
+.ccl-joining-steps { grid-template-columns:repeat(4,minmax(0,1fr)); }
+@media(min-width:768px) and (max-width:1100px) { .ccl-joining-steps { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:767px) { .ccl-joining-steps { grid-template-columns:1fr; } }

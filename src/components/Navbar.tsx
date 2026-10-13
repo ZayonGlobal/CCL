@@ -33,9 +33,9 @@ export const Navbar: React.FC = () => {
   // Navigation links for the public website
   const navLinks: { label: string; view: AppView }[] = [
     { label: 'Home', view: 'public_home' },
-    { label: '10 Labs', view: 'public_labs' },
-    { label: 'Programs', view: 'public_courses' },
-    { label: 'Membership', view: 'public_membership' },
+    { label: 'Courses', view: 'public_courses' },
+    { label: 'Community', view: 'public_community' },
+    { label: 'Guides & Tools', view: 'public_resources' },
     { label: 'Churches', view: 'public_churches' },
     { label: 'About', view: 'public_about' },
     { label: 'Contact', view: 'public_contact' },

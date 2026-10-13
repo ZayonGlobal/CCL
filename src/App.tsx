@@ -23,6 +23,9 @@ const PublicChurches = React.lazy(() => import('./views/public/PublicChurches').
 const PublicFAQ = React.lazy(() => import('./views/public/PublicFAQ').then(m => ({ default: m.PublicFAQ })));
 const PublicContact = React.lazy(() => import('./views/public/PublicFAQ').then(m => ({ default: m.PublicContact })));
 
+const PublicCommunity = React.lazy(() => import('./views/public/PublicCommunity').then(m => ({ default: m.PublicCommunity })));
+const PublicResources = React.lazy(() => import('./views/public/PublicResources').then(m => ({ default: m.PublicResources })));
+
 // Member views
 const DashboardView = React.lazy(() => import('./views/member/DashboardView').then(m => ({ default: m.DashboardView })));
 const LearnView = React.lazy(() => import('./views/member/LearnView').then(m => ({ default: m.LearnView })));
@@ -76,6 +79,10 @@ export const AppContent: React.FC = () => {
         return <PublicLabs />;
       case 'public_courses':
         return <PublicCourses />;
+      case 'public_community':
+        return <PublicCommunity />;
+      case 'public_resources':
+        return <PublicResources />;
       case 'public_membership':
         return <PublicMembership />;
       case 'public_churches':

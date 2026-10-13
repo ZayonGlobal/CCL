@@ -68,7 +68,7 @@ async function mockBackend(page: any, role = 'student') {
 test('public pages and auth controls render with readable dark surfaces',async({page})=>{
  await page.addInitScript(()=>{localStorage.setItem('ccl_theme','dark');sessionStorage.setItem('ccl-channel-popup-dismissed','1');});
  await mockBackend(page);await page.goto('/');await page.setViewportSize({width:1440,height:1000});
- for(const name of ['Home','10 Labs','Programs','Membership','Churches','About','Contact']){
+ for(const name of ['Home','Courses','Community','Guides & Tools','Churches','About','Contact']){
   await page.locator('header').getByRole('button',{name,exact:true}).click();
   await expect(page.locator('main h1').first()).toBeVisible();
   expect(await page.locator('header').evaluate((e:any)=>getComputedStyle(e).backgroundColor)).toBe('rgb(23, 24, 30)');
@@ -147,3 +147,20 @@ for(const [role,heading] of [
  });
 }
 
+
+test('free guides build and copy a useful prompt without an account', async({page}) => {
+ await mockBackend(page); await page.goto('/');
+ await page.locator('header').getByRole('button',{name:'Guides & Tools',exact:true}).click();
+ await page.getByLabel('What do you want to create?').fill('Plan an outreach invitation');
+ await page.getByLabel('Who is it for?').fill('First-time visitors');
+ await page.getByLabel('Details the tool needs').fill('Saturday at 4pm, main church hall');
+ await expect(page.locator('pre')).toContainText('Saturday at 4pm, main church hall');
+ await expect(page.getByRole('dialog')).toHaveCount(0);
+ await page.evaluate(() => Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async(text:string)=>{(window as any).copiedPrompt=text;}}}));
+ await page.getByRole('button',{name:'Copy prompt',exact:true}).click();
+ await expect(page.getByRole('status').filter({hasText:'Prompt copied.'})).toBeVisible();
+ expect(await page.evaluate(()=>(window as any).copiedPrompt)).toContain('First-time visitors');
+ await page.locator('header').getByRole('button',{name:'Community',exact:true}).click();
+ await page.getByRole('button',{name:'Open the member community'}).click();
+ await expect(page.getByRole('dialog')).toBeVisible();
+});

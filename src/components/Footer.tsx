@@ -84,13 +84,13 @@ export const Footer: React.FC = () => {
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNav('community')} className="hover:text-black">
+                <button onClick={() => handleNav('public_community')} className="hover:text-black">
                   Creator Community
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNav('public_membership')} className="hover:text-black">
-                  Membership
+                <button onClick={() => handleNav('public_resources')} className="hover:text-black">
+                  Free guides & tools
                 </button>
               </li>
             </ul>
