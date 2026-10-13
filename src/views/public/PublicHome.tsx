@@ -1,17 +1,23 @@
 import React from 'react';
-import { PublicPage, PublicActions, Cards, ChannelCard } from './PublicContent';
-export const PublicHome: React.FC = () => <PublicPage eyebrow="Christian Creator Lab" title="Learn AI. Create with purpose." intro="Learn how to use AI tools for creative work, church communication, and everyday business tasks. CCL helps Christians turn ideas into useful work while keeping faith, honesty, and human judgment at the centre.">
-  <PublicActions />
-  <section><h2 className="font-serif-ccl text-3xl font-bold mb-6">What would you like to create?</h2><Cards items={[
-    { title: 'Church media that communicates clearly', text: 'Explore ways to plan service announcements, write event invitations, develop flyer ideas, and turn a message into useful social content.' },
-    { title: 'Content with your own voice', text: 'Use AI to organise ideas, draft captions and scripts, and improve your writing. Edit the result so it sounds like you and serves your audience.' },
-    { title: 'Practical work for your business', text: 'Build confidence with creative briefs, product descriptions, customer messages, and digital ideas you can develop into real services.' }
+import { ArrowUpRight, Check, ArrowRight } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
+import { PublicPage, PublicActions, Cards, ChannelCard, EditorialImage, SectionHeading } from './PublicContent';
+export const PublicHome: React.FC = () => {
+ const { setCurrentView } = useApp();
+ return <PublicPage home eyebrow="A space for Christian creators" title="Learn AI. Create with purpose." intro="Turn your ideas into meaningful creative work. Explore AI for design, content, ministry, and business—with faith and human judgment at the heart of it.">
+  <div className="ccl-focus-strip"><span>Built around your real work</span><div><span>Church media</span><span>Design & content</span><span>Business ideas</span><span>Responsible AI</span></div></div>
+  <section><SectionHeading eyebrow="From possibility to practice" title="What will you create next?" text="Start with a task that matters to you. Learn how AI can help you think, draft, and make it better." /><Cards items={[
+    { title: 'Media that carries the message', text: 'Plan service announcements, develop flyer ideas, write event invitations, and shape social content that serves your church.' },
+    { title: 'Content with your own voice', text: 'Organise ideas, draft captions and scripts, and edit with intention. Let the tool help you express what you actually want to say.' },
+    { title: 'Ideas that move your business', text: 'Work on creative briefs, product descriptions, customer messages, and digital concepts you can develop into useful services.' }
   ]} /></section>
-  <section className="rounded-3xl border border-gray-200 bg-white p-8 sm:p-10"><p className="text-xs uppercase tracking-widest text-zinc-500">Start here</p><h2 className="font-serif-ccl text-3xl font-bold mt-3">AI Foundations Lab</h2><p className="text-sm text-zinc-600 max-w-2xl my-5 leading-relaxed">Our open starting point focuses on understanding AI, writing clear prompts, checking its answers, and using it responsibly. The other specialist labs are coming soon. Each course page shows its own lessons and access details.</p><PublicActions secondary="public_courses" label="Explore learning" /></section>
-  <section><h2 className="font-serif-ccl text-3xl font-bold mb-6">Made for people doing meaningful work</h2><Cards items={[
-    { title: 'New to AI?', text: 'Start with the basics. You do not need a coding background to learn how to give clear instructions and evaluate an AI response.' },
-    { title: 'A designer or content creator?', text: 'Bring your creative judgment. Explore how AI can support research, concepts, writing, and production without losing your original voice.' },
-    { title: 'Serving on a church team?', text: 'Apply what you learn to announcements, outreach, and media planning. Talk to us about the skills your team wants to develop.' }
-  ]} /></section>
+  <section className="ccl-foundation"><div className="ccl-foundation-copy"><p className="ccl-eyebrow"><span className="ccl-status-dot" />The open starting point</p><h2>A strong foundation.<br />Room to grow.</h2><p>Begin with AI Foundations: understand the tools, write clearer prompts, and learn to check what they produce. The other specialist labs are coming soon.</p><ul className="ccl-check-list">{['Understand what AI can and cannot do', 'Give better instructions and useful context', 'Review, refine, and create responsibly'].map(x => <li key={x}><Check size={17} />{x}</li>)}</ul><PublicActions secondary="public_courses" label="Explore learning" /></div><div className="ccl-foundation-visual"><EditorialImage photo="creator" /><div className="ccl-foundation-tag"><span>01 / THE FOUNDATIONS</span><strong>Start curious.<br />Build confidence.</strong><ArrowUpRight size={26} /></div></div></section>
+  <section><SectionHeading eyebrow="A simple way to begin" title="Bring an idea. Build a skill." /><div className="ccl-steps">{[
+    ['01', 'Get your bearings', 'Create a free account and explore the AI Foundations learning space.'],
+    ['02', 'Try a real task', 'Bring a caption, announcement, design idea, or business problem to practise with.'],
+    ['03', 'Make it your own', 'Check the result, improve it, and apply your creative judgment before sharing.']
+  ].map(([number,title,text]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>)}</div></section>
+  <section className="ccl-team-story"><EditorialImage photo="team" /><div><p className="ccl-eyebrow">For churches & creative teams</p><h2>Good work grows<br />when we learn together.</h2><p>Help your volunteers explore practical AI skills for communication, creative planning, and responsible publishing. Tell us what your team needs.</p><button className="ccl-text-link" onClick={() => setCurrentView('public_churches')}>Talk about team learning<ArrowRight size={18} /></button></div></section>
   <ChannelCard />
-</PublicPage>;
+ </PublicPage>;
+};

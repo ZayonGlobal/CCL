@@ -50,17 +50,17 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-100 bg-white/95 backdrop-blur-md transition-colors text-zinc-900">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 sm:px-8 lg:px-12">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-8 lg:px-12">
         {/* Brand Logo - Matching Screenshot Exactly */}
         <button
           onClick={() => handleNav('public_home')}
-          className="flex items-center gap-3 text-left focus:outline-none group"
+          aria-label="Christian Creator Lab home" className="flex items-center gap-3 text-left group"
         >
-          <BrandLogo className="w-32 sm:w-40" />
+          <BrandLogo className="w-24 sm:w-40" />
         </button>
 
         {/* Center Nav Links - Matching Screenshot */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-700">
+        <nav className="hidden xl:flex items-center gap-6 text-sm font-medium text-zinc-700">
           {navLinks.map((link) => (
             <button
               key={link.label}
@@ -77,7 +77,7 @@ export const Navbar: React.FC = () => {
         </nav>
 
         {/* Right Actions - Matching Screenshot: Black Pill Button "Join CCL →" */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Night Mode Theme Toggle */}
           <ThemeToggle variant="icon" />
 
@@ -102,7 +102,7 @@ export const Navbar: React.FC = () => {
                 setIsAuthModalOpen(true);
               }
             }}
-            className="rounded-full bg-black px-6 py-2.5 text-xs font-semibold text-white hover:bg-zinc-800 transition-colors shadow-xs flex items-center gap-1.5"
+            className="rounded-full bg-black px-3 sm:px-6 py-2.5 text-xs font-semibold text-white hover:bg-zinc-800 transition-colors shadow-xs flex items-center gap-1.5"
           >
             <span>{isAuthenticated ? 'Enter Lab →' : 'Join CCL →'}</span>
           </button>
@@ -110,8 +110,8 @@ export const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden rounded-lg p-2 text-zinc-700 hover:bg-zinc-100 focus:outline-none"
-            aria-label="Toggle navigation menu"
+            className="xl:hidden rounded-lg p-2 text-zinc-700 hover:bg-zinc-100 focus:outline-none"
+            aria-label="Toggle navigation menu" aria-expanded={mobileMenuOpen} aria-controls="ccl-mobile-navigation"
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -120,7 +120,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-gray-200 bg-white px-6 py-5 space-y-3">
+        <div id="ccl-mobile-navigation" className="xl:hidden border-b border-gray-200 bg-white px-6 py-5 space-y-3">
           {navLinks.map((link) => (
             <button
               key={link.label}
@@ -158,3 +158,4 @@ export const Navbar: React.FC = () => {
     </header>
   );
 };
+

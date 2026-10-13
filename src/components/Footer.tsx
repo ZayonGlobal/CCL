@@ -12,12 +12,12 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="border-t border-gray-200 bg-[#f9fafb] text-zinc-600 text-xs">
+    <footer className="ccl-public-footer border-t border-gray-200 bg-[#f9fafb] text-zinc-600 text-xs">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand & Purpose */}
           <div className="lg:col-span-2 space-y-4">
-            <BrandLogo className="w-52" />
+            <BrandLogo className="w-44" />
             <p className="text-xs text-zinc-600 max-w-sm leading-relaxed">
               Equipping Christians to use AI and digital tools for creativity, ministry, business,
               career development, and Kingdom impact. Create with purpose. Build for eternity.
@@ -65,7 +65,7 @@ export const Footer: React.FC = () => {
           {/* Community & Churches */}
           <div className="space-y-3">
             <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-950 font-bold">
-              Churches & Guild
+              Community & Teams
             </div>
             <ul className="space-y-2.5">
               <li>
@@ -85,7 +85,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button onClick={() => handleNav('community')} className="hover:text-black">
-                  Creator Guild Community
+                  Creator Community
                 </button>
               </li>
               <li>
@@ -99,7 +99,7 @@ export const Footer: React.FC = () => {
           {/* Ethics & Legal */}
           <div className="space-y-3">
             <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-950 font-bold">
-              Verification & Ethics
+              Help & Information
             </div>
             <ul className="space-y-2.5">
               <li>

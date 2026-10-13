@@ -1,16 +1,34 @@
 import React from 'react';
+import { ArrowUpRight, ArrowRight, BookOpen, Check, Sparkles, PenTool, Users } from 'lucide-react';
 import { useApp, type AppView } from '../../context/AppContext';
 export const CHANNEL_URL = 'https://whatsapp.com/channel/0029VbB8jEWEawdyeLVjfb3i';
-export function PublicPage({ eyebrow, title, intro, children }: { eyebrow: string; title: string; intro: string; children: React.ReactNode }) {
-  return <div className="bg-[#fcfcfd] text-zinc-900 pb-20"><section className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-14 pb-12"><p className="text-xs uppercase tracking-widest text-zinc-500 mb-5">{eyebrow}</p><h1 className="font-serif-ccl text-4xl sm:text-6xl font-bold max-w-4xl leading-tight">{title}</h1><p className="text-base sm:text-lg text-zinc-600 max-w-3xl mt-6 leading-relaxed">{intro}</p></section><div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 space-y-12">{children}</div></div>;
+export const PHOTOS = {
+  creator: { src: '/images/ccl-creator.webp', alt: 'Illustration of a Nigerian designer developing creative work at her laptop' },
+  team: { src: '/images/ccl-team.webp', alt: 'Illustration of a Nigerian creative team discussing ideas together' },
+  study: { src: '/images/ccl-study.webp', alt: 'Illustration of an open Bible, sketchbook, and laptop on a desk' },
+};
+type Photo = keyof typeof PHOTOS;
+export function EditorialImage({ photo, className = '', eager = false }: { photo: Photo; className?: string; eager?: boolean }) {
+  return <img {...PHOTOS[photo]} className={`ccl-photo ${className}`} width="1536" height="1024" loading={eager ? 'eager' : 'lazy'} fetchPriority={eager ? 'high' : 'auto'} decoding="async" />;
 }
+export function PublicPage({ eyebrow, title, intro, children, photo, home = false }: { eyebrow: string; title: string; intro: string; children: React.ReactNode; photo?: Photo; home?: boolean }) {
+  const image = photo ?? (/Church|About/.test(eyebrow) ? 'team' : /Membership|Questions/.test(eyebrow) ? 'study' : 'creator');
+  return <div className={`ccl-public ${home ? 'ccl-public-home' : ''}`}><section className="ccl-container ccl-hero">
+    <div className="ccl-hero-copy"><p className="ccl-eyebrow"><span className="ccl-status-dot" />{eyebrow}</p><h1>{title}</h1><p className="ccl-intro">{intro}</p><PublicActions /><div className="ccl-hero-notes"><span><Check size={14} />Beginner friendly</span><span><Check size={14} />Faith-led creativity</span></div></div>
+    <div className="ccl-hero-visual"><EditorialImage photo={image} eager /><div className="ccl-image-label"><span>{image === 'team' ? 'Better, together.' : image === 'study' ? 'Purpose before process.' : 'Ideas into useful work.'}</span><ArrowUpRight size={20} /></div><div className="ccl-floating-note"><Sparkles size={18} /><span>Faith. Creativity. Possibility.</span></div></div>
+  </section><div className="ccl-container ccl-page-body">{children}</div></div>;
+}
+const icons = [PenTool, BookOpen, Sparkles, Users, Check, ArrowUpRight];
 export function Cards({ items }: { items: { title: string; text: string }[] }) {
-  return <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">{items.map(item => <article key={item.title} className="rounded-3xl bg-white border border-gray-200 p-7"><h3 className="font-serif-ccl text-xl font-bold mb-3">{item.title}</h3><p className="text-sm text-zinc-600 leading-relaxed">{item.text}</p></article>)}</div>;
+  return <div className="ccl-card-grid">{items.map((item, i) => { const Icon = icons[i % icons.length]; return <article key={item.title} className="ccl-feature-card"><div className="ccl-card-top"><span className="ccl-icon-box"><Icon size={22} strokeWidth={1.5} /></span><span className="ccl-card-number">0{i + 1}</span></div><h3>{item.title}</h3><p>{item.text}</p></article>; })}</div>;
 }
 export function PublicActions({ secondary = 'public_labs', label = 'Explore the labs' }: { secondary?: AppView; label?: string }) {
-  const { setAuthModalMode, setIsAuthModalOpen, setCurrentView } = useApp();
-  return <div className="flex flex-wrap gap-3"><button className="rounded-full bg-black text-white px-6 py-3 font-semibold text-sm" onClick={() => { setAuthModalMode('register'); setIsAuthModalOpen(true); }}>Create a free account</button><button className="rounded-full border border-gray-300 bg-white px-6 py-3 text-sm font-semibold" onClick={() => setCurrentView(secondary)}>{label}</button></div>;
+  const { setAuthModalMode, setIsAuthModalOpen, setCurrentView, isAuthenticated } = useApp();
+  return <div className="ccl-actions"><button className="ccl-button ccl-button-primary" onClick={() => { if (isAuthenticated) setCurrentView('dashboard'); else { setAuthModalMode('register'); setIsAuthModalOpen(true); } }}>{isAuthenticated ? 'Open your workspace' : 'Create a free account'}<ArrowUpRight size={17} /></button><button className="ccl-button ccl-button-secondary" onClick={() => setCurrentView(secondary)}>{label}<ArrowRight size={17} /></button></div>;
+}
+export function SectionHeading({ eyebrow, title, text }: { eyebrow: string; title: string; text?: string }) {
+  return <div className="ccl-section-heading"><div><p className="ccl-eyebrow">{eyebrow}</p><h2>{title}</h2></div>{text && <p>{text}</p>}</div>;
 }
 export function ChannelCard() {
-  return <section className="rounded-3xl bg-white border border-gray-200 p-8 sm:p-10"><p className="text-xs uppercase tracking-widest text-zinc-500 mb-3">Free resources</p><h2 className="font-serif-ccl text-3xl font-bold">Get the AI Bible. Keep learning with us.</h2><p className="text-sm text-zinc-600 max-w-2xl my-5 leading-relaxed">Our free AI Bible, along with loads of other helpful AI and creative resources, is in the Christian Creator Lab WhatsApp channel. Follow for practical tips, new resources, and learning updates.</p><a href={CHANNEL_URL} target="_blank" rel="noopener noreferrer" className="inline-block rounded-full bg-black text-white px-6 py-3 text-sm font-semibold">Join the WhatsApp channel</a></section>;
+  return <section className="ccl-channel"><div className="ccl-channel-art"><EditorialImage photo="study" /><span className="ccl-art-label">A little inspiration.<br />A useful next step.</span></div><div className="ccl-channel-copy"><p className="ccl-eyebrow">The resource corner</p><h2>Your next idea<br />starts here.</h2><p>Get our free AI Bible, along with loads of other helpful AI and creative resources, in the Christian Creator Lab WhatsApp channel.</p><a href={CHANNEL_URL} target="_blank" rel="noopener noreferrer" className="ccl-button ccl-button-primary">Join the WhatsApp channel<ArrowUpRight size={18} /></a><span className="ccl-small-note">Free resources · Practical tips · Learning updates</span></div></section>;
 }

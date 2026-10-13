@@ -1,7 +1,7 @@
 import React from 'react';
 import { LABS } from '../../data/seedData';
 import { LabAvailability, isLabOpen } from '../../components/LabAvailability';
-import { PublicPage, PublicActions } from './PublicContent';
+import { PublicPage, PublicActions, SectionHeading } from './PublicContent';
 const descriptions: Record<string, string> = {
   'ai-foundations': 'Understand what AI can do, write clear prompts, check answers, and build responsible habits before using it in your creative work.',
   design: 'Develop visual ideas, creative briefs, and design workflows for church communication and brands.',
@@ -15,6 +15,6 @@ const descriptions: Record<string, string> = {
   leadership: 'Explore how to guide creative teams, share skills, and set sensible boundaries for AI use.'
 };
 export const PublicLabs: React.FC = () => <PublicPage eyebrow="Learning labs" title="Start with the foundations. Grow into your craft." intro="CCL’s ten learning labs organise the skills we want to help you develop. AI Foundations is open; the other nine are coming soon. Their descriptions show the planned focus, rather than courses already available.">
-  <PublicActions secondary="public_courses" label="Explore AI Foundations learning" />
-  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{LABS.map(lab => <article key={lab.id} className="relative rounded-3xl border border-gray-200 bg-white p-7 overflow-hidden min-h-64"><p className="text-xs uppercase tracking-widest text-zinc-500 mb-4">{isLabOpen(lab.id) ? 'Open lab' : 'Planned lab'}</p><h2 className="font-serif-ccl text-2xl font-bold mb-3">{lab.name}</h2><p className="text-sm text-zinc-600 leading-relaxed">{descriptions[lab.id]}</p><LabAvailability id={lab.id} name={lab.name} /></article>)}</div>
+  <section className="ccl-lab-feature"><div><p className="ccl-eyebrow"><span className="ccl-status-dot" />Open lab / 01</p><h2>AI Foundations</h2><p>Start with the essentials: understand the tools, give useful instructions, and make thoughtful creative decisions.</p><PublicActions secondary="public_courses" label="Explore foundation learning" /></div><ol>{['Understand AI', 'Write clear prompts', 'Check the answers', 'Create responsibly'].map((text, i) => <li key={text}><span>0{i + 1}</span>{text}</li>)}</ol></section>
+  <section><SectionHeading eyebrow="The next chapters" title="More ways to put your ideas to work." text="These specialist labs are in development. Follow our channel for announcements as they become ready." /><div className="ccl-lab-grid">{LABS.filter(lab => !isLabOpen(lab.id)).map((lab, i) => <article key={lab.id} className="ccl-lab-card"><div className="ccl-lab-title"><span>0{i + 2}</span><h3>{lab.name}</h3></div><div className="ccl-lab-preview"><p>{descriptions[lab.id]}</p><LabAvailability id={lab.id} name={lab.name} /></div></article>)}</div></section>
 </PublicPage>;

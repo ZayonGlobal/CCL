@@ -39,26 +39,9 @@ export const PublicContact: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#fcfcfd] text-zinc-900 pb-24 space-y-20 selection:bg-black selection:text-white">
-      {/* 1. HERO SECTION */}
-      <section className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 pt-8 sm:pt-14 lg:pt-16">
-        <div className="text-center max-w-2xl mx-auto space-y-4">
-          <div className="text-xs font-mono font-medium tracking-[0.25em] text-zinc-500 uppercase">
-            CONNECT & PARTNER
-          </div>
-          <h1 className="font-serif-ccl text-5xl sm:text-6xl font-bold text-zinc-950 leading-[1.06] tracking-tight">
-            Connect with the <br />
-            <span className="italic font-normal">CCL Team.</span>
-          </h1>
-          <p className="text-sm sm:text-base text-zinc-600 leading-relaxed">
-            Whether you represent a church media department, have a partnership inquiry, or wish to
-            contribute as an instructor, we would love to hear from you.
-          </p>
-        </div>
-      </section>
-
+    <PublicPage eyebrow="Contact CCL" photo="team" title="Let’s make something meaningful." intro="Have a question about learning, want to equip your church team, or interested in teaching? Tell us what you have in mind.">
       {/* 2. CONTACT GRID */}
-      <section className="mx-auto max-w-6xl px-6 sm:px-8 lg:px-12 pt-2">
+      <section className="ccl-contact-section">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Direct Info Cards */}
           <div className="lg:col-span-5 space-y-5">
@@ -148,7 +131,7 @@ export const PublicContact: React.FC = () => {
           </div>
         </div>
       </section>
-    </div>
+    </PublicPage>
   );
 };
 

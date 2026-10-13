@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { saveInquiry } from '../../services/data';
 import { errorMessage } from '../../services/supabase';
 import { LoadingSymbol } from '../../components/LoadingSymbol';
-import { PublicPage, Cards } from './PublicContent';
+import { PublicPage, Cards, EditorialImage } from './PublicContent';
 export const PublicChurches: React.FC = () => {
   const [name, setName] = useState(''); const [email, setEmail] = useState('');
   const [church, setChurch] = useState(''); const [size, setSize] = useState('');
@@ -20,7 +20,7 @@ export const PublicChurches: React.FC = () => {
       { title: 'A more confident creative team', text: 'Identify the skills your volunteers need: better prompts, creative planning, editing, or checking AI-assisted work.' },
       { title: 'Responsible use in ministry', text: 'Build habits for checking Scripture, protecting personal information, and keeping human review in your workflow.' }
     ]} />
-    <section className="rounded-3xl bg-white border border-gray-200 p-8 max-w-3xl"><h2 className="font-serif-ccl text-3xl font-bold mb-4">Tell us about your team</h2><p className="text-sm text-zinc-600 mb-6">This form starts a conversation. Programme scope, dates, and any costs need to be agreed with CCL. Shared team seats and reporting are not activated by submitting an enquiry.</p>
+    <div className="ccl-enquiry-layout"><aside className="ccl-enquiry-aside"><EditorialImage photo="team" /><h2>Tell us where<br />you want to grow.</h2><p>Share your team’s goals. We’ll start with the skills, tasks, and people that matter to you.</p><a href="mailto:cclabsupport@gmail.com" className="ccl-text-link">cclabsupport@gmail.com</a></aside><section className="ccl-editorial-panel"><h2 className="font-serif-ccl text-3xl font-bold mb-4">Tell us about your team</h2><p className="text-sm text-zinc-600 mb-6">This form starts a conversation. Programme scope, dates, and any costs need to be agreed with CCL. Shared team seats and reporting are not activated by submitting an enquiry.</p>
     {submitted ? <p role="status">Thank you, {name}. Your team enquiry has been received. We have {email} as your contact address.</p> : <form onSubmit={submit} className="space-y-5">
       {error && <p role="alert" className="text-rose-700">{error}</p>}
       <fieldset disabled={saving} className="space-y-5">
@@ -31,6 +31,6 @@ export const PublicChurches: React.FC = () => {
         <label className="block text-sm font-semibold">What would you like to learn?<textarea required maxLength={3000} rows={4} value={needs} onChange={e => setNeeds(e.target.value)} className={inputClass} /></label>
         <button className="rounded-full bg-black text-white px-6 py-3 text-sm font-semibold flex items-center gap-2" type="submit">{saving && <LoadingSymbol inline inverse label="Sending enquiry" />}{saving ? 'Sending…' : 'Send team enquiry'}</button>
       </fieldset>
-    </form>}</section>
+    </form>}</section></div>
   </PublicPage>;
 };
