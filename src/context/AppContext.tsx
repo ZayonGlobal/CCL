@@ -1,4 +1,6 @@
 import { roleHome } from '../services/roleHome';
+import { parsePath, pathFor, isPublicView, titleFor, descriptionFor } from '../services/routes';
+import type { Route } from '../services/routes';
 import { recoveryGatewayKey } from '../config/recoveryPublic';
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { Session } from '@supabase/supabase-js';
@@ -47,8 +49,27 @@ export type AppView =
 
 export interface NotificationItem { id: string; title: string; message: string; time: string; read: boolean; type: string; targetView?: AppView }
 
+type HistoryMode = 'push' | 'replace' | 'none';
+
+/** Role rules for member screens; returns the screen to open, or null when access is denied. */
+const resolveViewForRole = (view: AppView, role: UserProfile['role']): AppView | null => {
+  if (view === 'dashboard') return roleHome(role);
+  if (view === 'instructor' && role !== 'instructor' && !isAdmin(role)) return null;
+  if (view === 'admin' && !isAdmin(role)) return null;
+  if (view === 'mentor' && role !== 'mentor' && !isAdmin(role)) return null;
+  return view;
+};
+
 function useAppState() {
-  const [currentView, navigate] = useState<AppView>('public_home');
+  // The URL decides the first screen. Member screens wait until sign-in is confirmed.
+  const initialRoute = useRef<Route>(parsePath(window.location.pathname));
+  const pendingRoute = useRef<Route | null>(isPublicView(initialRoute.current.view) ? null : initialRoute.current);
+  const historyMode = useRef<HistoryMode>(pendingRoute.current ? 'none' : 'replace');
+  const firstAuthSync = useRef(true);
+  const [currentView, setView] = useState<AppView>(pendingRoute.current ? 'public_home' : initialRoute.current.view);
+  const viewRef = useRef(currentView);
+  viewRef.current = currentView;
+  const navigate = (view: AppView, mode: HistoryMode = 'push') => { historyMode.current = mode; setView(view); };
   const [currentUser, setCurrentUser] = useState<UserProfile>(emptyProfile);
   const [authLoading, setAuthLoading] = useState(isBackendConfigured);
   const [dataLoading, setDataLoading] = useState(false);
@@ -74,6 +95,12 @@ function useAppState() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try { return localStorage.getItem('ccl_theme') === 'dark' ? 'dark' : 'light'; } catch { return 'light'; }
   });
+  const applyRouteId = ({ view, id }: Route) => {
+    if (!id) return;
+    if (view === 'course_detail' || view === 'course_player') setSelectedCourseId(id);
+    if (view === 'challenge_detail') setSelectedChallengeId(id);
+    if (view === 'verify_certificate') setSelectedCertificateId(id);
+  };
   const authGeneration = useRef(0);
   const activeUser = useRef<string | null>(null);
 
@@ -123,18 +150,27 @@ function useAppState() {
           if (event === 'PASSWORD_RECOVERY' || new URLSearchParams(window.location.search).get('recovery') === '1') { setIsPasswordRecovery(true); setIsAuthModalOpen(true); }
           else if (switched) {
             try { sessionStorage.removeItem('ccl-pending-verification'); } catch {}
-            setIsAuthModalOpen(false); navigate(roleHome(result.user.role));
+            setIsAuthModalOpen(false);
+            const pending = pendingRoute.current; pendingRoute.current = null;
+            const allowed = pending && resolveViewForRole(pending.view, result.user.role);
+            const mode: HistoryMode = firstAuthSync.current ? 'replace' : 'push';
+            if (pending && allowed) { historyMode.current = mode; applyRouteId(pending); navigate(allowed, mode); }
+            // A signed-in visitor who opened a shared public page (e.g. /churches) stays on it.
+            else if (!(firstAuthSync.current && isPublicView(viewRef.current) && viewRef.current !== 'public_home')) navigate(roleHome(result.user.role), mode);
             setIsOnboardingOpen(!result.onboarded && result.user.role === 'student');
           }
           await Promise.all([fetchCatalog(), fetchMemberData(session.user.id)]);
         } else {
-          clearMemberData(); navigate('public_home'); await fetchCatalog();
+          clearMemberData();
+          if (pendingRoute.current) { navigate('public_home', 'replace'); window.history.replaceState(null, '', '/'); setAuthModalMode('login'); setIsAuthModalOpen(true); }
+          else if (!isPublicView(viewRef.current)) navigate('public_home', 'replace');
+          await fetchCatalog();
         }
         if (mounted && generation === authGeneration.current) setDataError('');
       } catch (error) {
         if (mounted && generation === authGeneration.current) setDataError(errorMessage(error));
       } finally {
-        if (mounted && generation === authGeneration.current) { setAuthLoading(false); setDataLoading(false); }
+        if (mounted && generation === authGeneration.current) { setAuthLoading(false); setDataLoading(false); firstAuthSync.current = false; }
       }
     };
     // Do not call async Supabase methods within its auth callback (auth lock).
@@ -165,21 +201,35 @@ function useAppState() {
     return () => { clearInterval(timer); window.removeEventListener('focus', refresh); };
   }, [isAuthenticated, currentUser.id]);
 
-  const setCurrentView = (view: AppView) => {
-    if (!view.startsWith('public_') && !isAuthenticated) {
-      setAuthModalMode('login'); setIsAuthModalOpen(true); return;
+  const ACCESS_MESSAGES: Partial<Record<AppView, string>> = {
+    instructor: 'Instructor access is required.', admin: 'Administrator access is required.', mentor: 'Mentor access is required.',
+  };
+  /** Opens a screen, applying sign-in and role rules. Returns false when the screen was not opened. */
+  const openView = (view: AppView, mode: HistoryMode = 'push', id?: string) => {
+    if (!isPublicView(view) && !isAuthenticated) {
+      pendingRoute.current = { view, id };
+      setAuthModalMode('login'); setIsAuthModalOpen(true); return false;
     }
-    if (view === 'instructor' && currentUser.role !== 'instructor' && !isAdmin(currentUser.role)) { setDataError('Instructor access is required.'); return; }
-    if (view === 'admin' && !isAdmin(currentUser.role)) { setDataError('Administrator access is required.'); return; }
-    if (view === 'dashboard') view = roleHome(currentUser.role);
-    if (view === 'mentor' && currentUser.role !== 'mentor' && !isAdmin(currentUser.role)) { setDataError('Mentor access is required.'); return; }
-    navigate(view); window.scrollTo({ top: 0, behavior: 'smooth' });
+    const allowed = isPublicView(view) ? view : resolveViewForRole(view, currentUser.role);
+    if (!allowed) { setDataError(ACCESS_MESSAGES[view] || 'You do not have access to that page.'); return false; }
+    historyMode.current = mode;
+    applyRouteId({ view, id });
+    navigate(allowed, mode);
+    return true;
+  };
+  const setCurrentView = (view: AppView) => {
+    if (openView(view)) window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const navigateWithParam = (view: AppView, id?: string) => {
-    if (view === 'course_detail' || view === 'course_player') { if (id) setSelectedCourseId(id); }
-    if (view === 'challenge_detail' && id) setSelectedChallengeId(id);
-    if (view === 'verify_certificate' && id) setSelectedCertificateId(id);
-    setCurrentView(view);
+    if (openView(view, 'push', id)) window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  /** Back/forward buttons: show the screen in the URL without adding a new history entry. */
+  const openFromHistory = useRef<(route: Route) => void>(() => {});
+  openFromHistory.current = (route) => {
+    if (!openView(route.view, 'none', route.id)) {
+      // Signed out or not permitted: keep the address bar in step with what is on screen.
+      window.history.replaceState(null, '', pathFor(viewRef.current, null));
+    }
   };
   const requireUser = () => {
     if (!isAuthenticated || !currentUser.id) throw new Error('Please sign in first.');
@@ -346,6 +396,33 @@ function useAppState() {
   const notifications: NotificationItem[] = [];
   const hoursLearned = Math.round(courses.flatMap(c => c.modules.flatMap(m => m.lessons)).filter(l => l.completed).reduce((n,l) => n+l.durationMinutes,0)/60*10)/10;
 
+  // Keep the address bar, page title and description in step with the screen.
+  const routeId = currentView === 'course_detail' || currentView === 'course_player' ? selectedCourseId
+    : currentView === 'challenge_detail' ? selectedChallengeId
+    : currentView === 'verify_certificate' ? selectedCertificateId || null : null;
+  useEffect(() => {
+    const mode = historyMode.current; historyMode.current = 'push';
+    const path = pathFor(currentView, routeId);
+    if (mode === 'none' || window.location.pathname === path) return;
+    if (mode === 'replace') window.history.replaceState(null, '', path);
+    else window.history.pushState(null, '', path);
+  }, [currentView, routeId]);
+  const challengeList = payloads<Challenge>('challenge');
+  const detailTitle = currentView === 'course_detail' || currentView === 'course_player' ? courses.find(c => c.id === selectedCourseId)?.title
+    : currentView === 'challenge_detail' ? challengeList.find(c => c.id === selectedChallengeId)?.title : undefined;
+  useEffect(() => {
+    document.title = titleFor(currentView, detailTitle);
+    document.querySelector('meta[name="description"]')?.setAttribute('content', descriptionFor(currentView));
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = window.location.origin + pathFor(isPublicView(currentView) ? currentView : 'public_home');
+  }, [currentView, detailTitle]);
+  useEffect(() => {
+    const onPop = () => openFromHistory.current(parsePath(window.location.pathname));
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
   return { currentView, setCurrentView, navigateWithParam, currentUser: { ...currentUser, hoursLearned },
     authLoading, dataLoading, isAuthenticated, dataError, setDataError, isBackendConfigured,
     login, register, logout, resetPassword, changePassword, isPasswordRecovery, updateCurrentUser, completeOnboarding,
@@ -354,7 +431,7 @@ function useAppState() {
     isOnboardingOpen, setIsOnboardingOpen, isAuthModalOpen, setIsAuthModalOpen, authModalMode, setAuthModalMode,
     theme, toggleTheme: () => setTheme(v => v === 'dark' ? 'light' : 'dark'), isSearchOpen, setIsSearchOpen,
     isAssistantOpen, setIsAssistantOpen, courses, enrollInCourse, toggleLessonComplete,
-    challenges: payloads<Challenge>('challenge'), submissions, addChallengeSubmission, projects, createProject,
+    challenges: challengeList, submissions, addChallengeSubmission, projects, createProject,
     updateProjectReview, posts, createPost, toggleReaction, prompts, toggleSavePrompt: toggleBookmark,
     resources, bookmarks, toggleBookmark, notifications, markNotificationRead: (_id: string) => {}, clearNotifications: () => {},
     dataRecords, commentsFor, saveActivity, certificates, publishCatalog,

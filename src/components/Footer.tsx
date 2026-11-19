@@ -1,16 +1,9 @@
 import { BrandLogo } from './BrandLogo';
 import React from 'react';
-import { useApp, AppView } from '../context/AppContext';
+import { AppLink } from './AppLink';
 import { ThemeToggle } from './ThemeToggle';
 
 export const Footer: React.FC = () => {
-  const { setCurrentView } = useApp();
-
-  const handleNav = (view: AppView) => {
-    setCurrentView(view);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
     <footer className="ccl-public-footer border-t border-gray-200 bg-[#f9fafb] text-zinc-600 text-xs">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 py-16">
@@ -35,29 +28,29 @@ export const Footer: React.FC = () => {
             </div>
             <ul className="space-y-2.5">
               <li>
-                <button onClick={() => handleNav('public_home')} className="hover:text-black">
+                <AppLink view="public_home" className="hover:text-black">
                   Home
-                </button>
+                </AppLink>
               </li>
               <li>
-                <button onClick={() => handleNav('public_about')} className="hover:text-black">
+                <AppLink view="public_about" className="hover:text-black">
                   About CCL
-                </button>
+                </AppLink>
               </li>
               <li>
-                <button onClick={() => handleNav('public_labs')} className="hover:text-black">
-                  10 Learning Labs
-                </button>
+                <AppLink view="public_labs" className="hover:text-black">
+                  Learning Labs
+                </AppLink>
               </li>
               <li>
-                <button onClick={() => handleNav('public_courses')} className="hover:text-black">
+                <AppLink view="public_courses" className="hover:text-black">
                   Course Catalog
-                </button>
+                </AppLink>
               </li>
               <li>
-                <button onClick={() => handleNav('live')} className="hover:text-black">
+                <AppLink view="live" className="hover:text-black">
                   Live learning
-                </button>
+                </AppLink>
               </li>
             </ul>
           </div>
@@ -69,29 +62,29 @@ export const Footer: React.FC = () => {
             </div>
             <ul className="space-y-2.5">
               <li>
-                <button onClick={() => handleNav('public_churches')} className="hover:text-black">
+                <AppLink view="public_churches" className="hover:text-black">
                   Church Media Teams
-                </button>
+                </AppLink>
               </li>
               <li>
-                <button onClick={() => handleNav('public_churches')} className="hover:text-black">
+                <AppLink view="public_churches" className="hover:text-black">
                   Team learning enquiries
-                </button>
+                </AppLink>
               </li>
               <li>
-                <button onClick={() => handleNav('challenges')} className="hover:text-black">
+                <AppLink view="challenges" className="hover:text-black">
                   Creator challenges
-                </button>
+                </AppLink>
               </li>
               <li>
-                <button onClick={() => handleNav('public_community')} className="hover:text-black">
+                <AppLink view="public_community" className="hover:text-black">
                   Creator Community
-                </button>
+                </AppLink>
               </li>
               <li>
-                <button onClick={() => handleNav('public_resources')} className="hover:text-black">
+                <AppLink view="public_resources" className="hover:text-black">
                   Free guides & tools
-                </button>
+                </AppLink>
               </li>
             </ul>
           </div>
@@ -103,19 +96,19 @@ export const Footer: React.FC = () => {
             </div>
             <ul className="space-y-2.5">
               <li>
-                <button onClick={() => handleNav('verify_certificate')} className="hover:text-black">
+                <AppLink view="verify_certificate" className="hover:text-black">
                   Certificate verification
-                </button>
+                </AppLink>
               </li>
               <li>
-                <button onClick={() => handleNav('public_faq')} className="hover:text-black">
+                <AppLink view="public_faq" className="hover:text-black">
                   FAQ & Scripture Policy
-                </button>
+                </AppLink>
               </li>
               <li>
-                <button onClick={() => handleNav('public_contact')} className="hover:text-black">
+                <AppLink view="public_contact" className="hover:text-black">
                   Contact CCL
-                </button>
+                </AppLink>
               </li>
               <li>
                 <span className="text-zinc-400">Privacy & Terms</span>

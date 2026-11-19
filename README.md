@@ -17,6 +17,16 @@ Use Node 22 or newer. Run `npm ci`, copy `.env.example` to `.env.local`, and con
 
 Browser tests mock the Supabase HTTP boundary. They do not send real emails. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` when using a system Chromium. Install a Playwright browser for normal local runs.
 
+## Page URLs
+
+Every screen has its own address (`src/services/routes.ts`), so pages can be shared, bookmarked, opened in a new tab and indexed, and the browser's back/forward buttons work.
+
+| Public | Member (sign-in required) |
+|---|---|
+| `/`, `/about`, `/labs`, `/courses`, `/community`, `/guides`, `/churches`, `/faq`, `/contact`, `/membership` | `/app` (role home), `/app/learn`, `/app/courses/:id`, `/app/courses/:id/learn`, `/app/challenges/:id`, `/app/projects`, `/app/community`, `/app/admin`, … |
+
+Each page sets its own title, description and canonical link. A member link opened while signed out shows the sign-in dialog and opens that page after sign-in; role rules still apply. Unknown paths fall back to the home page. Use `AppLink` for navigation that should be a real link. `public/sitemap.xml` lists the public pages; `public/robots.txt` keeps `/app/` out of search results. If the production domain changes, update both files.
+
 ## Authentication
 
 Configure the Supabase Site URL as `https://ccl-delta.vercel.app`, and allow that origin and `https://ccl-delta.vercel.app/?recovery=1` as redirects. Configure a production SMTP provider and keep email confirmation enabled. Use a minimum password length of 8.
@@ -61,7 +71,7 @@ Apply the SQL files in `supabase/migrations` in order for a new installation, th
 
 Forms confirm success only after a database acknowledgment. Shared discussions refresh every 30 seconds and on browser focus. The community load currently caps at the latest 1,000 records; add pagination for larger communities.
 
-Google sign-in remains hidden unless `VITE_GOOGLE_AUTH_ENABLED=true` and the provider is configured. The assistant uses the local curriculum help engine. Do not put a Gemini API key in frontend variables.
+Google sign-in remains hidden unless `VITE_GOOGLE_AUTH_ENABLED=true` and the provider is configured. The assistant is a local, rule-based help engine that only links to pages that exist. Never put an AI provider key in a `VITE_` variable; a model-backed assistant must call a server endpoint that keeps the key server-side.
 
 ## Popup welcome email
 

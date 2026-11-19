@@ -1,4 +1,11 @@
-import { GoogleGenAI } from '@google/genai';
+/**
+ * CCL Learning Assistant — a local, rule-based help engine.
+ *
+ * It runs entirely in the browser and only points members to pages that exist.
+ * Do not call an AI provider from here with a key in a VITE_ variable: anything in
+ * the frontend bundle is public. If a model-backed assistant is added later, call it
+ * through a server endpoint (e.g. /api/assistant) that keeps the key server-side.
+ */
 
 export interface AssistantMessage {
   id: string;
@@ -12,113 +19,64 @@ export interface AssistantMessage {
   };
 }
 
-const SYSTEM_INSTRUCTION = `You are the CCL Assistant, an educational and technical AI assistant inside Christian Creator Lab (CCL).
-Christian Creator Lab equips believers to use generative AI and digital tools for creative excellence, ministry communication, career advancement, and Kingdom impact.
+type Reply = { text: string; action?: { label: string; view: string; paramId?: string } };
 
-CRITICAL RULES & BOUNDARIES:
-1. Help users understand platform learning material, master AI prompting, select tools, understand lesson concepts, and refine creative workflows.
-2. NEVER claim spiritual authority, divine inspiration, prophetic insight, or that God told you something.
-3. NEVER replace pastoral counseling, spiritual direction, or prayer. If asked for personal spiritual direction or deep emotional crisis help, kindly direct them to their local church pastor or spiritual elders.
-4. NEVER invent fake Bible verses or misattribute scriptures. When quoting Scripture, ALWAYS clearly specify the Bible translation used (e.g., ESV, CSB, NIV, NKJV).
-5. Always present AI as a computational tool to be stewarded with excellence and moral responsibility, not as a replacement for human relationships or spiritual discernment.
-6. Tone: Encouraging, intellectually sharp, respectful, precise, and practical.`;
+const includesAny = (text: string, words: string[]) => words.some((w) => text.includes(w));
 
-export async function askCclAssistant(
-  prompt: string,
-  history: AssistantMessage[] = []
-): Promise<{ text: string; action?: { label: string; view: string; paramId?: string } }> {
-  const apiKey = (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) ||
-                 (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_GEMINI_API_KEY) ||
-                 '';
-
-  if (apiKey) {
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const contents = [
-        ...history.slice(-6).map((m) => ({
-          role: m.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: m.content }],
-        })),
-        { role: 'user', parts: [{ text: prompt }] },
-      ];
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.7,
-        },
-      });
-
-      const replyText = response.text || "I'm here to help you navigate Christian Creator Lab courses, prompting workflows, and creative systems.";
-      return { text: replyText };
-    } catch (err) {
-      console.warn('Gemini API call failed, falling back to local CCL assistant engine', err);
-    }
-  }
-
-  // High quality context-aware fallback response engine
+export async function askCclAssistant(prompt: string, _history: AssistantMessage[] = []): Promise<Reply> {
   const lower = prompt.toLowerCase();
 
-  if (lower.includes('easter') || lower.includes('challenge')) {
+  if (includesAny(lower, ['scripture', 'bible', 'verse', 'theolog', 'sermon'])) {
     return {
-      text: "For the Church Easter Campaign Challenge, our mentor team recommends focusing on authentic visual atmosphere rather than cliché golden rays. Use the 5-layer prompt framework to generate background textures (e.g., first-century Judean morning stone at dawn) and pair with clean, high-contrast typography. Be sure to cite your Scripture translation (e.g., 1 Corinthians 15:55-57 ESV).",
-      action: {
-        label: 'Open Easter Campaign Challenge',
-        view: 'challenge_detail',
-        paramId: 'ch_easter_campaign',
-      },
+      text: 'AI can help you draft and organise, but it can also misquote or invent Bible verses. Always check every verse against your Bible, name the translation you are quoting (for example ESV or NIV), and let your pastor or ministry leader review anything doctrinal before it is published.',
+      action: { label: 'Read the FAQ & Scripture policy', view: 'public_faq' },
     };
   }
 
-  if (lower.includes('prompt') || lower.includes('recipe')) {
+  if (includesAny(lower, ['prompt', 'instruction', 'brief'])) {
     return {
-      text: "Effective prompt architecture in CCL follows our 5-Layer Framework: 1) Persona/Role, 2) Context & Audience, 3) Core Execution Task, 4) Explicit Negative Constraints, and 5) Output Schema. Check out our curated Prompt Library for verified prompts across design, sermons, and business proposals.",
-      action: {
-        label: 'Explore Prompt Library',
-        view: 'prompts',
-      },
+      text: 'A clear prompt usually covers five things: who the AI should act as, who the audience is, the exact task, what to avoid, and the format you want back. Try the free prompt builder in Guides & Tools, then review the result and edit it in your own voice.',
+      action: { label: 'Open guides & tools', view: 'public_resources' },
     };
   }
 
-  if (lower.includes('church') || lower.includes('media') || lower.includes('pastor') || lower.includes('sermon')) {
+  if (includesAny(lower, ['church', 'media', 'team', 'volunteer', 'pastor', 'announcement', 'flyer'])) {
     return {
-      text: "In our Ministry Lab, we emphasize that AI is an operational assistant—it can transcribe, summarize notes, and draft social slides in minutes, freeing up your media team for personal relationship and prayer. Remember: always have human eyes verify theology and scripture citations before publishing!",
-      action: {
-        label: 'View Church Media AI Course',
-        view: 'course_detail',
-        paramId: 'crs_church_media_teams',
-      },
+      text: 'For church communication, start small: announcements, event invitations, flyer ideas and social captions. Keep a person responsible for checking facts, Scripture and permissions before anything goes out. If you lead a media team, tell us what your volunteers need.',
+      action: { label: 'Team learning for churches', view: 'public_churches' },
     };
   }
 
-  if (lower.includes('freelanc') || lower.includes('client') || lower.includes('price') || lower.includes('business')) {
+  if (includesAny(lower, ['course', 'lesson', 'learn', 'start', 'beginner', 'lab'])) {
     return {
-      text: "In the Business Lab ('Freelancing With AI'), Babatunde Williams teaches value-based project pricing instead of charging by the hour. When using AI tools to work 4x faster, billing by the hour penalizes your efficiency. Focus on the business outcome you deliver to your client.",
-      action: {
-        label: 'View Freelancing Course',
-        view: 'course_detail',
-        paramId: 'crs_freelancing_with_ai',
-      },
+      text: 'AI Foundations is the open lab: understanding what AI can and cannot do, writing clearer prompts, and checking what it produces. The specialist labs (design, video, content, web, automation, ministry, business and more) are coming soon.',
+      action: { label: 'Go to Learn', view: 'learn' },
     };
   }
 
-  if (lower.includes('vibe') || lower.includes('code') || lower.includes('web') || lower.includes('app')) {
+  if (includesAny(lower, ['challenge', 'project', 'portfolio'])) {
     return {
-      text: "Vibe coding allows you to build custom church portals, event RSVP systems, and digital tools by directing AI code editors like Cursor and Claude. Start in our Web & Build Lab to see real end-to-end demonstrations.",
-      action: {
-        label: 'Explore Web & Build Lab',
-        view: 'learn',
-      },
+      text: 'Challenges and projects are where you practise on real work. When a challenge is open it appears on the Challenges page; you can also start your own project from a caption, announcement, design idea or business problem.',
+      action: { label: 'Open challenges', view: 'challenges' },
+    };
+  }
+
+  if (includesAny(lower, ['business', 'freelanc', 'client', 'price', 'pricing'])) {
+    return {
+      text: 'AI can speed up drafting creative briefs, product descriptions, proposals and customer messages. A useful habit: price around the result you deliver to the client rather than the hours it took, and always check the work yourself before sending it.',
+      action: { label: 'Ask the community', view: 'community' },
+    };
+  }
+
+  if (includesAny(lower, ['privacy', 'permission', 'copyright', 'safe', 'responsib'])) {
+    return {
+      text: 'Do not paste private or sensitive information about church members or clients into AI tools, get permission before using someone’s photo or words, and keep human judgment in every decision that matters.',
+      action: { label: 'Read the FAQ', view: 'public_faq' },
     };
   }
 
   return {
-    text: "Welcome to Christian Creator Lab. As your learning assistant, I can help you find relevant courses across our 10 Labs, refine your prompts for Midjourney and Gemini, or clarify technical concepts. What are you building or studying today?",
-    action: {
-      label: 'Browse Course Library',
-      view: 'learn',
-    },
+    text: 'I can point you to the right place in Christian Creator Lab: the AI Foundations lab, the prompt builder and guides, the member community, or team learning for churches. What are you working on?',
+    action: { label: 'Go to Learn', view: 'learn' },
   };
 }
