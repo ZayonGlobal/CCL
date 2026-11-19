@@ -21,7 +21,7 @@ export const AssistantDrawer: React.FC = () => {
       id: 'init_1',
       role: 'assistant',
       content:
-        'Peace to you! I am the CCL Learning Assistant. I can help you choose courses, refine Midjourney/Gemini prompts, clarify technical concepts, and navigate creative workflows. (Note: I am purely an educational tool to assist your craft—not a pastoral counselor or spiritual authority!) What are you looking to create or learn today?',
+        'Peace to you! I am the CCL Learning Assistant. I can point you to the right lessons, guides and tools, and share practical tips for prompting and checking AI work. (Note: I am purely an educational tool to assist your craft—not a pastoral counselor or spiritual authority!) What are you looking to create or learn today?',
       timestamp: 'Just now',
     },
   ]);
@@ -79,10 +79,10 @@ export const AssistantDrawer: React.FC = () => {
   };
 
   const starterPrompts = [
-    'How do I structure a prompt for Sunday sermon social recaps?',
-    'What are the requirements for the Church Easter Campaign Challenge?',
-    'How does value-based pricing work for Christian freelancers?',
-    'Recommend a course for church media teams',
+    'How do I write a clearer prompt?',
+    'How should I check Scripture in AI drafts?',
+    'Where do I start learning?',
+    'How can our church media team use AI?',
   ];
 
   return (
@@ -170,7 +170,7 @@ export const AssistantDrawer: React.FC = () => {
               </div>
               <div className="rounded-2xl bg-[#f4f4f6] p-3 flex items-center gap-2 text-zinc-500">
                 <LoadingSymbol inline label="Consulting CCL curriculum…" />
-                <span>Consulting CCL curriculum knowledge base...</span>
+                <span>Finding the right place…</span>
               </div>
             </div>
           )}

@@ -116,7 +116,7 @@ test('contact preserves entered data on failure and confirms only an acknowledge
     }
   });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Contact CCL', exact: true }).click();
+  await page.getByRole('link', { name: 'Contact CCL', exact: true }).click();
   await page.getByLabel('Full Name', { exact: true }).fill('Real Visitor');
   await page.getByLabel('Email Address', { exact: true }).fill('visitor@example.com');
   await page.getByLabel('Message', { exact: true }).fill('Please tell me about joining CCL.');
@@ -140,9 +140,11 @@ test('saved enrollment and new project survive reload and signout clears identit
   await page.getByRole('button',{name:'Learn',exact:true}).first().click();
   await expect(page.getByText('Enrolled',{exact:true})).toBeVisible();
   expect(state.enrollments).toHaveLength(1);
+  // Reloading keeps the member on the page they were viewing.
   await page.reload();
-  await expect(page.getByRole('heading',{name:'Welcome, Real.'})).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/learn$/);
   await expect(page.getByText(course.title,{exact:true})).toBeVisible();
+  await expect(page.getByText('Enrolled',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Projects',exact:true}).first().click();
   await page.getByRole('button',{name:'New Project',exact:true}).click();
   const dialog=page.locator('form').last();
@@ -151,8 +153,7 @@ test('saved enrollment and new project survive reload and signout clears identit
   await dialog.getByRole('button',{name:'Add Project to Portfolio',exact:true}).click();
   await expect(page.getByText('Saved Creator Project',{exact:true})).toBeVisible();
   expect(state.records).toHaveLength(1);
-  await page.reload(); await expect(page.getByRole('heading',{name:'Welcome, Real.'})).toBeVisible();
-  await page.getByRole('button',{name:'Projects',exact:true}).first().click();
+  await page.reload(); await expect(page).toHaveURL(/\/app\/projects$/);
   await expect(page.getByText('Saved Creator Project',{exact:true})).toBeVisible();
   await page.getByRole('button').filter({has:page.locator('img[alt="Real"]')}).click();
   await page.getByRole('button',{name:'Sign Out',exact:true}).click();
@@ -161,3 +162,42 @@ test('saved enrollment and new project survive reload and signout clears identit
   expect(errors).toEqual([]);
 });
 
+
+test('every page has its own URL, title, back button and deep link', async ({ page }) => {
+  await mockBackend(page);
+  await page.addInitScript(() => sessionStorage.setItem('ccl-channel-popup-dismissed', '1'));
+  await page.goto('/');
+  await expect(page).toHaveTitle(/Christian Creator Lab \(CCL\)/);
+
+  // Header links are real links with real addresses.
+  await expect(page.locator('header').getByRole('link', { name: 'Churches', exact: true })).toHaveAttribute('href', '/churches');
+  await page.locator('header').getByRole('link', { name: 'Churches', exact: true }).click();
+  await expect(page).toHaveURL(/\/churches$/);
+  await expect(page).toHaveTitle('Church Media Teams | Christian Creator Lab');
+  await page.locator('header').getByRole('link', { name: 'About', exact: true }).click();
+  await expect(page).toHaveURL(/\/about$/);
+
+  // Back and forward move between pages inside the site.
+  await page.goBack();
+  await expect(page).toHaveURL(/\/churches$/);
+  await expect(page).toHaveTitle('Church Media Teams | Christian Creator Lab');
+  await page.goForward();
+  await expect(page).toHaveURL(/\/about$/);
+
+  // Opening a shared public link lands on that page, and unknown paths fall back to home.
+  await page.goto('/faq');
+  await expect(page).toHaveTitle('FAQ & Scripture Policy | Christian Creator Lab');
+  await page.goto('/not-a-page');
+  await expect(page).toHaveURL(/\/$/);
+
+  // A member link opened while signed out asks for sign-in, then opens that page.
+  await page.goto('/app/projects');
+  await expect(page).toHaveURL(/\/$/);
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel('Email address', { exact: true }).fill('creator@example.com');
+  await dialog.getByLabel('Password', { exact: true }).fill('a-valid-password');
+  await dialog.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page).toHaveURL(/\/app\/projects$/);
+  await expect(page).toHaveTitle('Projects | Christian Creator Lab');
+});

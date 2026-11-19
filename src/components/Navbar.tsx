@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { UserRole } from '../types';
 import { ThemeToggle } from './ThemeToggle';
+import { AppLink } from './AppLink';
 
 export const Navbar: React.FC = () => {
   const {
@@ -51,19 +52,20 @@ export const Navbar: React.FC = () => {
     <header className="sticky top-0 z-40 w-full border-b border-gray-100 bg-white/95 backdrop-blur-md transition-colors text-zinc-900">
       <div className="mx-auto flex h-24 max-w-[1536px] items-center justify-between px-4 sm:px-8 lg:px-12">
         {/* Brand Logo - Matching Screenshot Exactly */}
-        <button
-          onClick={() => handleNav('public_home')}
+        <AppLink
+          view="public_home" onNavigate={() => setMobileMenuOpen(false)}
           aria-label="Christian Creator Lab home" className="flex items-center gap-3 text-left group"
         >
           <BrandLogo className="w-24 sm:w-44" />
-        </button>
+        </AppLink>
 
         {/* Center Nav Links - Matching Screenshot */}
         <nav className="hidden xl:flex items-center gap-6 text-[15px] font-medium text-zinc-700">
           {navLinks.map((link) => (
-            <button
+            <AppLink
               key={link.label}
-              onClick={() => handleNav(link.view)}
+              view={link.view}
+              aria-current={currentView === link.view ? 'page' : undefined}
               className={`transition-colors hover:text-black ${
                 currentView === link.view
                   ? 'text-black font-semibold'
@@ -71,7 +73,7 @@ export const Navbar: React.FC = () => {
               }`}
             >
               {link.label}
-            </button>
+            </AppLink>
           ))}
         </nav>
 
@@ -121,15 +123,17 @@ export const Navbar: React.FC = () => {
       {mobileMenuOpen && (
         <div id="ccl-mobile-navigation" className="xl:hidden border-b border-gray-200 bg-white px-6 py-5 space-y-3">
           {navLinks.map((link) => (
-            <button
+            <AppLink
               key={link.label}
-              onClick={() => handleNav(link.view)}
+              view={link.view}
+              onNavigate={() => setMobileMenuOpen(false)}
+              aria-current={currentView === link.view ? 'page' : undefined}
               className={`block w-full text-left py-2 text-sm font-medium ${
                 currentView === link.view ? 'text-black font-bold' : 'text-zinc-600'
               }`}
             >
               {link.label}
-            </button>
+            </AppLink>
           ))}
 
           <div className="pt-2">
